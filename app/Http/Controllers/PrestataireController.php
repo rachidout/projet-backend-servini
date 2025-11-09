@@ -7,6 +7,7 @@ use App\Models\Service;
 use App\Http\Requests\RegisterPrestataireRequest;
 use App\Http\Requests\LoginPrestataireRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Requests\UpdatePasswordRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -53,7 +54,7 @@ class PrestataireController extends Controller
     'token_type' => 'Bearer',
    ], 200);
   }
-  public function updateProfile(UpdateProfileRequest $request ) {
+public function updateProfile(UpdateProfileRequest $request ) { // modifie le profile
        $validatedData = $request->validated();
        $prestataire = $request->user();
         if($request->hasFile('image')){
@@ -63,12 +64,24 @@ class PrestataireController extends Controller
         $path = $request->file('image')->store('profile_image' , 'public');
         $validatedData['ímage'] = $path;
   }
-  $prestataire->update($validatedData);
+  $prestataire->update($validatedData); // update l password
   return response()->json(
     [
-        'message' => 'Profile mis a jour avec succes!',
+    'message' => 'Profile mis a jour avec succes!',
         'prestataire' => $prestataire
     ]
   , 200);
+    }
+
+public function updatePassword(UpdatePasswordRequest $request) {
+    $prestataire = Auth::user();
+    $prestataire->update(
+        [
+            'password' => Hash::make($request->new_password) // rani hachito 7ta hnaya
+        ]
+    );
+    return response()->json([
+        'message' => 'Mot de passe change avec succes!'
+    ], 200);
 }
 }
