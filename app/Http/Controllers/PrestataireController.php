@@ -6,10 +6,12 @@ use App\Models\Prestataire;
 use App\Models\Service;
 use App\Http\Requests\RegisterPrestataireRequest;
 use App\Http\Requests\LoginPrestataireRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 
 class PrestataireController extends Controller
 {
@@ -51,4 +53,22 @@ class PrestataireController extends Controller
     'token_type' => 'Bearer',
    ], 200);
   }
+  public function updateProfile(UpdateProfileRequest $request ) {
+       $validatedData = $request->validated();
+       $prestataire = $request->user();
+        if($request->hasFile('image')){
+            if($prestataire->image){
+             Storage::disk('public')->delete($prestataire->image);
+            }
+        $path = $request->file('image')->store('profile_image' , 'public');
+        $validatedData['ímage'] = $path;
+  }
+  $prestataire->update($validatedData);
+  return response()->json(
+    [
+        'message' => 'Profile mis a jour avec succes!',
+        'prestataire' => $prestataire
+    ]
+  , 200);
+}
 }

@@ -10,3 +10,5 @@ Route::get('/user', function (Request $request) {
 //Prestatire
 Route::post('/prestataire/register', [PrestataireController::class, 'register']);
 Route::post('/prestataire/login',[PrestataireController::class,'login']);
+Route::post('/prestataire/profile/update',[PrestataireController::class,'updateProfile'])->middleware('auth:sanctum');
+
