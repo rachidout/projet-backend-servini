@@ -13,4 +13,5 @@ Route::post('/prestataire/login',[PrestataireController::class,'login']);
 Route::post('/prestataire/profile/update',[PrestataireController::class,'updateProfile'])->middleware('auth:sanctum');
 Route::post('/prestataire/password/update', [PrestataireController::class, 'updatePassword'])->middleware('auth:sanctum');
 Route::get('/prestataire/information',[PrestataireController::class,'getInformation'])->middleware('auth:sanctum');
+Route::get('/prestataire/parameter', [PrestataireController::class, 'getparameter'])->middleware('auth:sanctum');
 Route::post('/prestataire/parameter',[PrestataireController::class,'setparameter'])->middleware('auth:sanctum');

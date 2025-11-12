@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('prestataires', function (Blueprint $table) {
-            $table->string('status')->default('pending')->after('carte_identite');
+            $table->string('status')->default('pending')->after('carte_identite');//3ndna pending ola rejected ola approved
         });
     }
 

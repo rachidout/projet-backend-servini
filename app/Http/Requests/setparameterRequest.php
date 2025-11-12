@@ -24,7 +24,7 @@ class setparameterRequest extends FormRequest
         return [
             'bio' => 'nullable|string|max:1000',
             'prix_heure' => 'required|numeric|min:0',
-             'carte_identite' => 'required|image|mimes:jpeg,png,jpg',
+             'carte_identite' => 'image|mimes:jpeg,png,jpg',
              'facebook_url' => 'nullable|url|max:255',
              'linkedin_url' => 'nullable|url|max:255',
         ];

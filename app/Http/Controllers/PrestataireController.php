@@ -134,10 +134,18 @@ public function setparameter(setparameterRequest $request){
         'facebook_url' => $validatedData['facebook_url'] ?? $prestataire->facebook_url ,
         'linkedin_url' => $validatedData['linkedin_url'] ?? $prestataire->linkedin_url ,
     ];
+      if(!$request->hasFile('carte_identite')){
+        if($prestataire->status == 'pending'){
+            return response()->json([
+                'message' => "Veuillez entrer votre pièce d’identité afin de traiter votre demande.  "
+            ], 403);
+        }
+      }
+
   if($request->hasFile('carte_identite')){
     //mli kaykon staus approved
      if($prestataire->status == 'approved'){
-         return response()->json([
+       return response()->json([
             'message' => "Vous ne pouvez pas modifier votre piece d'identite apres approbation.",
          ], 403);
      }
@@ -153,4 +161,19 @@ public function setparameter(setparameterRequest $request){
         'message' => 'Parametres mis a jour avec succes '
     ], 200);
 }
+
+public function getparameter(Request $request)
+{
+    $prestataire = Auth::user();
+
+    return response()->json([
+       'status' => $prestataire->status,
+        'bio' => $prestataire->bio,
+        'carte_identite_path' => $prestataire->carte_identite,
+        'prix_heure' => $prestataire->prix_heure,
+        'facebook_url' => $prestataire->facebook_url,
+        'linkedin_url' => $prestataire->linkedin_url,
+    ], 200);
+}
+
 }
