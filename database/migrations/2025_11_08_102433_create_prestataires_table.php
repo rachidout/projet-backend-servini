@@ -24,7 +24,9 @@ return new class extends Migration
             $table->string('zone');
             $table->string('password');
             $table->string('carte_identite')->nullable();
-            $table->decimal('note_moyenne',3,1)->default(0); // la valuer momkin tkon XX.Y
+            $table->decimal('note_moyenne',3,1)->default(0);// la valuer momkin tkon XX.Y
+            $table->string('facebook_url')->nullable();
+            $table->string('linkedin_url')->nullable();
             $table->timestamps();
         });
     }

@@ -23,7 +23,10 @@ class Prestataire extends Authenticatable
         'zone',
         'password',
         'carte_identite',
+        'status',
         'note_moyenne',
+        'facebook_url',
+        'linkedin_url',
     ];
     protected $hiddern = [
         'password',

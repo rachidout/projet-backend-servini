@@ -8,6 +8,7 @@ use App\Http\Requests\RegisterPrestataireRequest;
 use App\Http\Requests\LoginPrestataireRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Requests\UpdatePasswordRequest;
+use App\Http\Requests\setparameterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -124,5 +125,32 @@ public function getInformation(Request $request)
             : $imageDefault,
     ]);
 }
-
+public function setparameter(setparameterRequest $request){
+    $prestataire = Auth::user();
+    $validatedData = $request->validated();
+    $dataToUpdate = [
+        'bio' => $validatedData['bio'] ?? $prestataire->bio,
+        'prix' => $validatedData['prix_heure'] ?? $prestataire->prix_heure,
+        'facebook_url' => $validatedData['facebook_url'] ?? $prestataire->facebook_url ,
+        'linkedin_url' => $validatedData['linkedin_url'] ?? $prestataire->linkedin_url ,
+    ];
+  if($request->hasFile('carte_identite')){
+    //mli kaykon staus approved
+     if($prestataire->status == 'approved'){
+         return response()->json([
+            'message' => "Vous ne pouvez pas modifier votre piece d'identite apres approbation.",
+         ], 403);
+     }
+     //mli kaykon status pending wla rejected
+      if($prestataire->carte_identite){
+        Storage::disk('public')->delete($prestataire->carte_identite);
+      }
+      $path = $request->file('carte_identite')->store('id_cards' , 'public');
+      $dataToUpdate['carte_identite'] = $path;
+  }
+  $prestataire->update($dataToUpdate);
+    return response()->json([
+        'message' => 'Parametres mis a jour avec succes '
+    ], 200);
+}
 }
