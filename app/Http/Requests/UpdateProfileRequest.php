@@ -24,24 +24,25 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         $prestataireId = Auth::id();
+
         return [
-            'nom' => 'string|max:255',
-            'prenom' => 'string|max:255',
-            'email ' => [
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'email' => [
+                'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique('prestataires')->ignore($prestataireId),
-
             ],
             'telephone' => [
+                'required',
                 'string',
                 'max:20',
                 Rule::unique('prestataires')->ignore($prestataireId),
             ],
-            'image' => 'nullable|image|mimes:jpeg,png.jpg',
-            'bio' =>'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg',
+            'bio' => 'nullable|string',
         ];
-
     }
 }

@@ -54,25 +54,49 @@ class PrestataireController extends Controller
     'token_type' => 'Bearer',
    ], 200);
   }
-public function updateProfile(UpdateProfileRequest $request ) { // modifie le profile
-       $validatedData = $request->validated();
-       $prestataire = $request->user();
-        if($request->hasFile('image')){
-            if($prestataire->image){
-             Storage::disk('public')->delete($prestataire->image);
-            }
-        $path = $request->file('image')->store('profile_image' , 'public');
-        $validatedData['ímage'] = $path;
-  }
-  $prestataire->update($validatedData); // update l password
-  return response()->json(
-    [
-    'message' => 'Profile mis a jour avec succes!',
-        'prestataire' => $prestataire
-    ]
-  , 200);
-    }
+public function updateProfile(UpdateProfileRequest $request) {
+    $prestataire = $request->user();
 
+    $validatedData = $request->validated();
+
+    $prestataire->nom = $validatedData['nom'];
+    $prestataire->prenom = $validatedData['prenom'];
+    $prestataire->email = $validatedData['email'];
+    $prestataire->telephone = $validatedData['telephone'];
+
+    if ($request->hasFile('image')) {
+        if ($prestataire->image) {
+            $oldImagePath = storage_path('app/public/profile_image/' . $prestataire->image);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+        }
+        $imageName = time() . '.' . $request->image->extension();
+
+        $path = $request->image->storeAs('profile_image', $imageName, 'public');
+
+       
+        $prestataire->image = $imageName;
+  }
+
+    $prestataire->save();
+
+    $imageDefault = asset('storage/profile_image/default-profile.jpg');
+
+    return response()->json([
+        'message' => 'Profil mis à jour avec succès',
+        'prestataire' => [
+            'nom' => $prestataire->nom,
+            'prenom' => $prestataire->prenom,
+            'email' => $prestataire->email,
+            'telephone' => $prestataire->telephone,
+            'membre_depuis' => $prestataire->created_at->format('M d, Y'),
+            'image' => $prestataire->image
+                ? asset('storage/profile_image/' . $prestataire->image)
+                : $imageDefault
+        ]
+    ]);
+    }
 public function updatePassword(UpdatePasswordRequest $request) {
     $prestataire = Auth::user();
     $prestataire->update(
@@ -84,4 +108,21 @@ public function updatePassword(UpdatePasswordRequest $request) {
         'message' => 'Mot de passe change avec succes!'
     ], 200);
 }
+public function getInformation(Request $request)
+{
+    $prestataire = $request->user();
+    $imageDefault = asset('storage/profile_image/default-profile.jpg');
+
+    return response()->json([
+        'nom' => $prestataire->nom,
+        'prenom' => $prestataire->prenom,
+        'email' => $prestataire->email,
+        'telephone' => $prestataire->telephone,
+        'membre_depuis' => $prestataire->created_at->format('M d, Y'),
+        'image' => $prestataire->image
+            ? asset('storage/profile_image/' . $prestataire->image)
+            : $imageDefault,
+    ]);
+}
+
 }
