@@ -75,9 +75,9 @@ public function updateProfile(UpdateProfileRequest $request) {
 
         $path = $request->image->storeAs('profile_image', $imageName, 'public');
 
-       
+
         $prestataire->image = $imageName;
-  }
+    }
 
     $prestataire->save();
 
@@ -96,7 +96,7 @@ public function updateProfile(UpdateProfileRequest $request) {
                 : $imageDefault
         ]
     ]);
-    }
+}
 public function updatePassword(UpdatePasswordRequest $request) {
     $prestataire = Auth::user();
     $prestataire->update(
