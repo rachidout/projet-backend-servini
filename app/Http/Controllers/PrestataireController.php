@@ -134,7 +134,7 @@ public function setparameter(setparameterRequest $request){
         'facebook_url' => $validatedData['facebook_url'] ?? $prestataire->facebook_url ,
         'linkedin_url' => $validatedData['linkedin_url'] ?? $prestataire->linkedin_url ,
     ];
-      if(!$request->hasFile('carte_identite')){
+      if(!$request->hasFile('carte_identite') && !$prestataire->carte_identite){
         if($prestataire->status == 'pending'){
             return response()->json([
                 'message' => "Veuillez entrer votre pièce d’identité afin de traiter votre demande.  "
