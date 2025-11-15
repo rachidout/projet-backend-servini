@@ -32,7 +32,7 @@ class Prestataire extends Authenticatable
         'password',
     ];
 
-    function services(){
+    function service(){
         return $this->hasOne(Service::class,'id_prestataire');
     }
     function reservations(){

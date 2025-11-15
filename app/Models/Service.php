@@ -10,10 +10,14 @@ class Service extends Model
          'id_prestataire',
          'categorie'
     ];
-    public  function prestataire() {
-        return $this->belongsTo(Prestataire::class , 'id_prestataire');
-    }
+
+    public function prestataire()
+{
+    return $this->belongsTo(Prestataire::class, 'id_prestataire');
+}
     public function reservations() {
         return $this->hasMany(Reservation::class,'id_service');
     }
 }
+
+

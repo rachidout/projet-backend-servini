@@ -39,7 +39,8 @@ class PrestataireController extends Controller
          'service' => $service
     ], 201);
 }
- public function login(LoginPrestataireRequest $request) {
+
+public function login(LoginPrestataireRequest $request) {
        $prestataire = Prestataire::where('email',$request->email)->first();
    if( !$prestataire || !Hash::check($request->password, $prestataire->password)){
        throw ValidationException::withMessages(
@@ -55,7 +56,8 @@ class PrestataireController extends Controller
     'token_type' => 'Bearer',
    ], 200);
   }
-public function updateProfile(UpdateProfileRequest $request) {
+
+  public function updateProfile(UpdateProfileRequest $request) {
     $prestataire = $request->user();
 
     $validatedData = $request->validated();
@@ -98,6 +100,7 @@ public function updateProfile(UpdateProfileRequest $request) {
         ]
     ]);
 }
+
 public function updatePassword(UpdatePasswordRequest $request) {
     $prestataire = Auth::user();
     $prestataire->update(
@@ -109,8 +112,8 @@ public function updatePassword(UpdatePasswordRequest $request) {
         'message' => 'Mot de passe change avec succes!'
     ], 200);
 }
-public function getInformation(Request $request)
-{
+
+public function getInformation(Request $request){
     $prestataire = $request->user();
     $imageDefault = asset('storage/profile_image/default-profile.jpg');
 
@@ -125,6 +128,7 @@ public function getInformation(Request $request)
             : $imageDefault,
     ]);
 }
+
 public function setparameter(setparameterRequest $request){
     $prestataire = Auth::user();
     $validatedData = $request->validated();
@@ -162,8 +166,7 @@ public function setparameter(setparameterRequest $request){
     ], 200);
 }
 
-public function getparameter(Request $request)
-{
+public function getparameter(Request $request){
     $prestataire = Auth::user();
 
     return response()->json([
@@ -176,4 +179,84 @@ public function getparameter(Request $request)
     ], 200);
 }
 
+public function logout(Request $request){
+    $prestataire = $request->user();
+    $prestataire->tokens()->delete();
+    return response()->json([
+        'message' => 'Déconnexion réussie!'
+    ], 200);
+
+
+}
+
+
+
+public function show($id)
+    {
+        try {
+            $prestataire = Prestataire::with('reservations')->findOrFail($id);
+            $imageDefault = asset('storage/profile_image/default-profile.jpg');
+
+            $service = $prestataire->service;
+
+            $serviceId = $service->id ?? null;
+            $serviceName = $service->categorie ?? 'Non spécifié';
+
+            $prixHeure = $prestataire->prix_heure ?? null;
+
+
+            $prestataire = Prestataire::with(['reservations', 'service'])
+            ->withCount([
+                    'reservations as total_prestations' => fn($q) => $q->where('status', 'confirmee')
+                ])
+                ->findOrFail($id);
+
+            $nbReservations = $prestataire->reservations->count();
+
+
+
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $prestataire->id,
+                    'nom' => $prestataire->nom,
+                    'prenom' => $prestataire->prenom,
+                    'email' => $prestataire->email,
+                    'telephone' => $prestataire->telephone,
+                    'ville' => $prestataire->ville,
+                    'zone' => $prestataire->zone,
+                    'bio' => $prestataire->bio,
+
+                    'service_id' => $serviceId,
+                    'service_name' => $serviceName,
+                    'prix' => $prixHeure, 
+
+                    'facebook_url' => $prestataire->facebook_url,
+                    'linkedin_url' => $prestataire->linkedin_url,
+
+                    'membre_depuis' => $prestataire->created_at->format('M d, Y'),
+
+                    'photo' => $prestataire->image
+                        ? asset('storage/profile_image/' . $prestataire->image)
+                        : $imageDefault,
+
+
+                            ]
+            ], 200);
+
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Prestataire non trouvé'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('Erreur show Prestataire:', ['error' => $e->getMessage()]);
+             return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur lors de la récupération du prestataire'
+            ], 500);
+        }
+    }
 }
