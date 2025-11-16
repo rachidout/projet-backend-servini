@@ -13,11 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReservationController extends Controller
 {
-    /**
-     * Créer une nouvelle réservation (méthode POST)
-     */
     public function store(AddReservationRequest $request){
-        // Validation des données
         $validator = Validator::make($request->all(), [
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
@@ -27,8 +23,6 @@ class ReservationController extends Controller
             'heure' => 'required',
             'adresse' => 'required|string|max:500',
             'description_besoin' => 'required|string',
-
-
             'service_id' => 'required|exists:services,id',
             'service' => 'required|exists:services,categorie'
 
@@ -58,9 +52,6 @@ class ReservationController extends Controller
         try {
 
             $service = Service::with('prestataire')->findOrFail($request->service_id);
-
-
-
             $existingReservation = Reservation::whereHas('service', function($query) use ($service) {
                                               $query->where('prestataire_id', $service->prestataire_id);
                                           })
@@ -89,7 +80,7 @@ class ReservationController extends Controller
                 'description_besoin' => $request->description_besoin,
                 'date' => $request->date,
                 'heure' => $request->heure,
-                'statut' => 'en_attente' // Statut initial
+                'statut' => 'en_attente' 
             ]);
 
             $service->prestataire->increment('nb_prestations');
@@ -123,9 +114,7 @@ class ReservationController extends Controller
         }
     }
 
-    /**
-     * Récupérer toutes les réservations
-     */
+
     public function index(Request $request){
         try {
             $query = Reservation::with('service.prestataire');
@@ -159,9 +148,7 @@ class ReservationController extends Controller
         }
     }
 
-    /**
-     * Récupérer une réservation spécifique
-     */
+
     public function show($id){
         try {
             $reservation = Reservation::with('service.prestataire')->findOrFail($id);

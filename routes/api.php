@@ -18,8 +18,9 @@ Route::post('/prestataire/password/update', [PrestataireController::class, 'upda
 Route::get('/prestataire/information',[PrestataireController::class,'getInformation'])->middleware('auth:sanctum');
 Route::get('/prestataire/parameter', [PrestataireController::class, 'getparameter'])->middleware('auth:sanctum');
 Route::post('/prestataire/parameter',[PrestataireController::class,'setparameter'])->middleware('auth:sanctum');
-
-
+// -----hadi dyal filtrage
+Route::get('/prestataires', [PrestataireController::class, 'index']);
+//-----
 Route::get('/prestataires/{id}', [PrestataireController::class, 'show']);
 
 
@@ -28,14 +29,14 @@ Route::post('/prestataire/logout',[PrestataireController::class,'logout'])->midd
 
 Route::get('/stats', [StaticsController::class, 'index']);
 
-Route::prefix('reservations')->group(function () { 
-     Route::post('/', [ReservationController::class, 'store']);         
-     Route::get('/', [ReservationController::class, 'index']); 
-     Route::get('/{id}', [ReservationController::class, 'show']);    
-     Route::put('/{id}', [ReservationController::class, 'update']);    
-     Route::delete('/{id}', [ReservationController::class, 'destroy']);        
-     Route::patch('/{id}/statut', [ReservationController::class, 'updateStatut']);    
-     Route::patch('/{id}/cancel', [ReservationController::class, 'cancel']);    
+Route::prefix('reservations')->group(function () {
+     Route::post('/', [ReservationController::class, 'store']);
+     Route::get('/', [ReservationController::class, 'index']);
+     Route::get('/{id}', [ReservationController::class, 'show']);
+     Route::put('/{id}', [ReservationController::class, 'update']);
+     Route::delete('/{id}', [ReservationController::class, 'destroy']);
+     Route::patch('/{id}/statut', [ReservationController::class, 'updateStatut']);
+     Route::patch('/{id}/cancel', [ReservationController::class, 'cancel']);
      Route::get('/stats/all', [ReservationController::class, 'statistics']);
 
 }
@@ -47,4 +48,4 @@ Route::get('/services/{id}', [ServiceController::class, 'show']);
 Route::get('/prestataire/{id}/service', [ServiceController::class, 'getServiceByPrestataire']);
 Route::post('/services', [ServiceController::class, 'store']);
 Route::put('/services/{id}', [ServiceController::class, 'update']);
-Route::delete('/services/{id}', [ServiceController::class, 'destroy']); 
+Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
