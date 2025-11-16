@@ -80,7 +80,7 @@ class ReservationController extends Controller
                 'description_besoin' => $request->description_besoin,
                 'date' => $request->date,
                 'heure' => $request->heure,
-                'statut' => 'en_attente' 
+                'statut' => 'en_attente'
             ]);
 
             $service->prestataire->increment('nb_prestations');

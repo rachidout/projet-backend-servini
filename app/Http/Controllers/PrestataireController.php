@@ -17,29 +17,36 @@ use Illuminate\Support\Facades\Storage;
 
 class PrestataireController extends Controller
 {
-  public function register(RegisterPrestataireRequest $request){
-       $validatedData = $request->validated();
-      $prestataire = Prestataire::create([
-            'nom' => $validatedData['nom'],
-            'prenom' => $validatedData['prenom'],
-            'email' => $validatedData['email'],
-            'telephone' => $validatedData['telephone'],
-            'ville' => $validatedData['ville'],
-            'zone' => $validatedData['zone'],
-            'password' => Hash::make($validatedData['password']),
-            'note_moyenne' => 3.4,
-        ]);
+  public function register(RegisterPrestataireRequest $request)
+{
+    $validatedData = $request->validated();
 
-        $service = Service::create([
-         'id_prestataire' => $prestataire->id,
-         'categorie' => $validatedData['categorie'],
-   ]);
+    $imageDefault = asset('storage/profile_image/default-profile.jpg');
+
+    $prestataire = Prestataire::create([
+        'nom' => $validatedData['nom'],
+        'prenom' => $validatedData['prenom'],
+        'email' => $validatedData['email'],
+        'telephone' => $validatedData['telephone'],
+        'ville' => $validatedData['ville'],
+        'zone' => $validatedData['zone'],
+        'password' => Hash::make($validatedData['password']),
+        'note_moyenne' => 0,
+        'image' => $imageDefault,
+    ]);
+
+    $service = Service::create([
+        'id_prestataire' => $prestataire->id,
+        'categorie' => $validatedData['categorie'],
+    ]);
+
     return response()->json([
-        'message' => 'Prestataire inscrit avec succes!',
+        'message' => 'Prestataire inscrit avec succès!',
         'prestataire' => $prestataire,
-         'service' => $service
+        'service' => $service
     ], 201);
 }
+
 
 public function login(LoginPrestataireRequest $request) {
        $prestataire = Prestataire::where('email',$request->email)->first();
