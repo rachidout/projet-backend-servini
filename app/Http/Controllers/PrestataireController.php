@@ -173,7 +173,79 @@ public function setparameter(setparameterRequest $request){
         'message' => 'Parametres mis a jour avec succes '
     ], 200);
 }
+public function show($id)
+    {
+        try {
+            // Charger uniquement les 'reservations' ici
+            $prestataire = Prestataire::with('reservations')->findOrFail($id);
+            $imageDefault = asset('storage/profile_image/default-profile.jpg');
 
+            // Accès sécurisé à la relation 'service' (lazy loading)
+            $service = $prestataire->service;
+
+            // Utilisation du null coalescing operator sur l'objet $service
+            $serviceId = $service->id ?? null;
+            $serviceName = $service->categorie ?? 'Non spécifié';
+
+            // ✅ CORRECTION CRITIQUE : Définition de $prixHeure à partir du modèle Prestataire
+            $prixHeure = $prestataire->prix_heure ?? null;
+
+
+            $prestataire = Prestataire::with(['reservations', 'service'])
+            ->withCount([
+                    'reservations as total_prestations' => fn($q) => $q->where('status', 'confirmee')
+                ])
+                ->findOrFail($id);
+
+            $nbReservations = $prestataire->reservations->count();
+
+
+
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $prestataire->id,
+                    'nom' => $prestataire->nom,
+                    'prenom' => $prestataire->prenom,
+                    'email' => $prestataire->email,
+                    'telephone' => $prestataire->telephone,
+                    'ville' => $prestataire->ville,
+                    'zone' => $prestataire->zone,
+                    'bio' => $prestataire->bio,
+
+                    // Clés de service essentielles pour la réservation et l'affichage
+                    'service_id' => $serviceId,
+                    'service_name' => $serviceName,
+                    'prix' => $prixHeure, // ✅ $prixHeure est maintenant défini
+
+                    'facebook_url' => $prestataire->facebook_url,
+                    'linkedin_url' => $prestataire->linkedin_url,
+
+                    'membre_depuis' => $prestataire->created_at->format('M d, Y'),
+
+                    'photo' => $prestataire->image
+                        ? asset('storage/profile_image/' . $prestataire->image)
+                        : $imageDefault,
+
+
+                            ]
+            ], 200);
+
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Prestataire non trouvé'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('Erreur show Prestataire:', ['error' => $e->getMessage()]);
+             return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur lors de la récupération du prestataire'
+            ], 500);
+        }
+    }
 public function getparameter(Request $request){
     $prestataire = Auth::user();
 
