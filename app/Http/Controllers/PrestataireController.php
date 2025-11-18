@@ -361,4 +361,50 @@ public function index(Request $request){
             ]
         ], 200);
     }
+
+    public function show_all(){
+        try {
+            $prestataires = Prestataire::all();
+            
+            // Retourne les données en JSON avec un code 200 OK
+            return response()->json($prestataires, 200);
+
+        } catch (\Exception $e) {
+            // Gestion d'erreur, utile pour le débogage
+            return response()->json([
+                'message' => 'Erreur lors de la récupération des prestataires.',
+                'error' => $e->getMessage()
+            ], 500); // Code 500 pour une erreur interne du serveur
+        }
+    }
+
+    public function destroy(Prestataire $prestataire) {// Injection de modèle{
+        try {
+            // Optionnel : Supprimer le fichier d'identité associé du stockage
+            if ($prestataire->carte_identite) {
+                Storage::disk('public/id_cards')->delete($prestataire->carte_identite);
+            }
+            
+            $prestataire->delete();
+
+            return response()->json(['message' => 'Prestataire annulé (supprimé) avec succès.'], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur lors de la suppression.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function activate(Prestataire $prestataire){
+        try {
+            $prestataire->status = 'active'; 
+            $prestataire->save();
+
+            return response()->json(['message' => 'Prestataire activé avec succès.'], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur lors de l\'activation.', 'error' => $e->getMessage()], 500);
+        }
+    }
+    
+
 }

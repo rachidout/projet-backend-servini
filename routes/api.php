@@ -20,11 +20,18 @@ Route::get('/prestataire/parameter', [PrestataireController::class, 'getparamete
 Route::post('/prestataire/parameter',[PrestataireController::class,'setparameter'])->middleware('auth:sanctum');
 // -----hadi dyal filtrage
 Route::get('/prestataires', [PrestataireController::class, 'index']);
-//-----
+
+// -----hadi dyal admin
+Route::get('prestataires', [PrestataireController::class, 'show_all']);
+Route::delete('prestataires/{prestataire}', [PrestataireController::class, 'destroy']);
+Route::put('prestataires/activer/{prestataire}', [PrestataireController::class, 'activate']);
+
+
 Route::get('/prestataires/{id}', [PrestataireController::class, 'show']);
 
 
 Route::post('/prestataire/logout',[PrestataireController::class,'logout'])->middleware('auth:sanctum');
+
 
 
 Route::get('/stats', [StaticsController::class, 'index']);
@@ -34,8 +41,6 @@ Route::post('/reservations', [ReservationController::class, 'store']);
 Route::get('/prestataires/{id}/reservations', [ReservationController::class, 'byPrestataire']);
 Route::patch('/reservations/{id}/statut', [ReservationController::class, 'updateStatus']);
 
-//Reservations------------------------------------------------------------------------------------
-//Route::middleware('auth:sanctum')->get('/reservations', [ReservationController::class, 'index']);
 
 //Services------------------------------------------------------------------------------------
 Route::get('/services', [ServiceController::class, 'index']);

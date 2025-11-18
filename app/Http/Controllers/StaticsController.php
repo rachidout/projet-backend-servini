@@ -14,7 +14,8 @@ class StaticsController extends Controller{
             'total_prestations' => Reservation::where('statut', 'confirmee')
         ->count(),
             'total_reservations' => Reservation::count(),
-            'total_clients' => Reservation::distinct('client_nom')->count('client_nom')
+            'total_clients' => Reservation::distinct('client_nom')->count('client_nom'),
+            'total_prestataires' => prestataire::count()
         ]);
     }
     
