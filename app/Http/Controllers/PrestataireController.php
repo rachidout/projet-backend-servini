@@ -180,7 +180,7 @@ public function show($id){
             ])
             ->findOrFail($id);
 
-    //    $imageDefault = asset('storage/profile_image/default-profile.jpg');
+        $imageDefault = asset('storage/profile_image/default-profile.jpg');
 
         $service = $prestataire->service;
         $serviceId = $service->id ?? null;
@@ -229,6 +229,7 @@ public function show($id){
         ], 500);
     }
 }
+
 
 public function logout(Request $request){
     $prestataire = $request->user();
