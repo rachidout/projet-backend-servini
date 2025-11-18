@@ -19,30 +19,34 @@ class Reservation extends Model
         'client_adresse',
         'description_du_besoin',
         'date',
-        'heure',
+        'heure', 
         'statut'
     ];
 
     protected $casts = [
         'date' => 'date',
-        'heure' => 'datetime:H:i',
+        'heure' => 'datetime:H:i', // ✅ Correction: utilise datetime au lieu de time
     ];
 
+    // ✅ Relation avec le prestataire (spécifier la clé étrangère)
     public function prestataire()
     {
         return $this->belongsTo(Prestataire::class, 'id_prestataire');
     }
 
+    // ✅ Relation avec le service
     public function service()
     {
         return $this->belongsTo(Service::class, 'id_service');
     }
 
+    // ✅ Accesseur pour le nom complet du client (corriger les noms de colonnes)
     public function getNomCompletAttribute()
     {
         return $this->client_prenom . ' ' . $this->client_nom;
     }
 
+    // Scopes pour filtrer par statut
     public function scopeEnAttente($query)
     {
         return $query->where('statut', 'en_attente');

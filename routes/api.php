@@ -28,24 +28,22 @@ Route::post('/prestataire/logout',[PrestataireController::class,'logout'])->midd
 
 
 Route::get('/stats', [StaticsController::class, 'index']);
+Route::get('/stats/prestataire', [StaticsController::class, 'staticsprestataire'])->middleware('auth:sanctum');
 
-Route::prefix('reservations')->group(function () {
-     Route::post('/', [ReservationController::class, 'store']);
-     Route::get('/', [ReservationController::class, 'index']);
-     Route::get('/{id}', [ReservationController::class, 'show']);
-     Route::put('/{id}', [ReservationController::class, 'update']);
-     Route::delete('/{id}', [ReservationController::class, 'destroy']);
-     Route::patch('/{id}/statut', [ReservationController::class, 'updateStatut']);
-     Route::patch('/{id}/cancel', [ReservationController::class, 'cancel']);
-     Route::get('/stats/all', [ReservationController::class, 'statistics']);
+Route::post('/reservations', [ReservationController::class, 'store']);
+Route::get('/prestataires/{id}/reservations', [ReservationController::class, 'byPrestataire']);
+Route::patch('/reservations/{id}/statut', [ReservationController::class, 'updateStatus']);
 
-}
+//Reservations------------------------------------------------------------------------------------
+//Route::middleware('auth:sanctum')->get('/reservations', [ReservationController::class, 'index']);
 
-
-);//Services------------------------------------------------------------------------------------
+//Services------------------------------------------------------------------------------------
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{id}', [ServiceController::class, 'show']);
 Route::get('/prestataire/{id}/service', [ServiceController::class, 'getServiceByPrestataire']);
 Route::post('/services', [ServiceController::class, 'store']);
 Route::put('/services/{id}', [ServiceController::class, 'update']);
 Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
+
+
+
