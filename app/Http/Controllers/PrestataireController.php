@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
 
-class PrestataireController extends Controller{
-  public function register(RegisterPrestataireRequest $request)
-{
+class PrestataireController extends Controller {
+ 
+public function register(RegisterPrestataireRequest $request){
     $validatedData = $request->validated();
 
     $imageDefault = asset('storage/profile_image/default-profile.jpg');
@@ -44,6 +44,7 @@ class PrestataireController extends Controller{
         'prestataire' => $prestataire,
         'service' => $service
     ], 201);
+
 }
 
 public function login(LoginPrestataireRequest $request) {
@@ -230,7 +231,6 @@ public function show($id){
     }
 }
 
-
 public function logout(Request $request){
     $prestataire = $request->user();
     $prestataire->tokens()->delete();
@@ -360,9 +360,10 @@ public function index(Request $request){
                 'categories' => $categories
             ]
         ], 200);
-    }
+ }
 
-    public function show_all(){
+
+ public function show_all(){
         try {
             $prestataires = Prestataire::all();
             
@@ -376,9 +377,11 @@ public function index(Request $request){
                 'error' => $e->getMessage()
             ], 500); // Code 500 pour une erreur interne du serveur
         }
-    }
+}
 
-    public function destroy(Prestataire $prestataire) {// Injection de modèle{
+
+
+public function destroy(Prestataire $prestataire) {
         try {
             if ($prestataire->carte_identite) {
                 Storage::disk('public/id_cards')->delete($prestataire->carte_identite);
@@ -391,9 +394,11 @@ public function index(Request $request){
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur lors de la suppression.', 'error' => $e->getMessage()], 500);
         }
-    }
+}
 
-    public function activate(Prestataire $prestataire){
+
+
+public function activate(Prestataire $prestataire){
         try {
             $prestataire->status = 'active'; 
             $prestataire->save();
@@ -403,7 +408,11 @@ public function index(Request $request){
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur lors de l\'activation.', 'error' => $e->getMessage()], 500);
         }
-    }
+      }
     
+
+
+
+
 
 }

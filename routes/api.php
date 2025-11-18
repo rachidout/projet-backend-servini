@@ -18,6 +18,7 @@ Route::post('/prestataire/password/update', [PrestataireController::class, 'upda
 Route::get('/prestataire/information',[PrestataireController::class,'getInformation'])->middleware('auth:sanctum');
 Route::get('/prestataire/parameter', [PrestataireController::class, 'getparameter'])->middleware('auth:sanctum');
 Route::post('/prestataire/parameter',[PrestataireController::class,'setparameter'])->middleware('auth:sanctum');
+
 // -----hadi dyal filtrage
 Route::get('/prestataires', [PrestataireController::class, 'index']);
 
