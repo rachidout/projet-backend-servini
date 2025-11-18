@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
 
 class PrestataireController extends Controller {
- 
+
 public function register(RegisterPrestataireRequest $request){
     $validatedData = $request->validated();
 
@@ -360,13 +360,13 @@ public function index(Request $request){
                 'categories' => $categories
             ]
         ], 200);
- }
+    }
 
 
  public function show_all(){
         try {
             $prestataires = Prestataire::all();
-            
+
             // Retourne les données en JSON avec un code 200 OK
             return response()->json($prestataires, 200);
 
@@ -386,7 +386,7 @@ public function destroy(Prestataire $prestataire) {
             if ($prestataire->carte_identite) {
                 Storage::disk('public/id_cards')->delete($prestataire->carte_identite);
             }
-            
+
             $prestataire->delete();
 
             return response()->json(['message' => 'Prestataire annulé (supprimé) avec succès.'], 200);
@@ -400,7 +400,7 @@ public function destroy(Prestataire $prestataire) {
 
 public function activate(Prestataire $prestataire){
         try {
-            $prestataire->status = 'active'; 
+            $prestataire->status = 'active';
             $prestataire->save();
 
             return response()->json(['message' => 'Prestataire activé avec succès.'], 200);
@@ -409,7 +409,7 @@ public function activate(Prestataire $prestataire){
             return response()->json(['message' => 'Erreur lors de l\'activation.', 'error' => $e->getMessage()], 500);
         }
       }
-    
+
 
 
 
