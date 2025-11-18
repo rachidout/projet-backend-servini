@@ -17,6 +17,7 @@ class StaticsController extends Controller{
             'total_clients' => Reservation::distinct('client_nom')->count('client_nom')
         ]);
     }
+    
 
     public function staticsprestataire(){
     $prestataire = Auth::user(); // ou auth()->user()
