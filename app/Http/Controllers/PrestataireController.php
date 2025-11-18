@@ -380,7 +380,6 @@ public function index(Request $request){
 
     public function destroy(Prestataire $prestataire) {// Injection de modèle{
         try {
-            // Optionnel : Supprimer le fichier d'identité associé du stockage
             if ($prestataire->carte_identite) {
                 Storage::disk('public/id_cards')->delete($prestataire->carte_identite);
             }
