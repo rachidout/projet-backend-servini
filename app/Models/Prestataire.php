@@ -23,7 +23,7 @@ class Prestataire extends Authenticatable
         'zone',
         'password',
         'carte_identite',
-        'status',
+        'statut',
         'note_moyenne',
         'facebook_url',
         'linkedin_url',
