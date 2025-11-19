@@ -257,7 +257,7 @@ public function index(Request $request)
         ->with(['service'])
         ->withCount([
             'reservations as nombre_prestations' => function($query) {
-                $query->where('statut', 'active');
+                $query->where('statut', 'confirmee');
             }
         ])
         ->withCount('avis as nombre_avis');
