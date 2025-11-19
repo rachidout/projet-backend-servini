@@ -12,236 +12,267 @@ use App\Http\Requests\setparameterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Storage;
 
-class PrestataireController extends Controller {
+class PrestataireController extends Controller
+{
 
-public function register(RegisterPrestataireRequest $request){
-    $validatedData = $request->validated();
+    // ================================
+    // REGISTER
+    // ================================
+    public function register(RegisterPrestataireRequest $request)
+    {
+        $validatedData = $request->validated();
 
-    $imageDefault = asset('storage/profile_image/default-profile.jpg');
+        // CHEMIN PUBLIC
+        $imageDefault = asset('profile_image/default-profile.jpg');
 
-    $prestataire = Prestataire::create([
-        'nom' => $validatedData['nom'],
-        'prenom' => $validatedData['prenom'],
-        'email' => $validatedData['email'],
-        'telephone' => $validatedData['telephone'],
-        'ville' => $validatedData['ville'],
-        'zone' => $validatedData['zone'],
-        'password' => Hash::make($validatedData['password']),
-        'note_moyenne' => 0,
-        'image' => $imageDefault,
-    ]);
-
-    $service = Service::create([
-        'id_prestataire' => $prestataire->id,
-        'categorie' => $validatedData['categorie'],
-    ]);
-
-    return response()->json([
-        'message' => 'Prestataire inscrit avec succès!',
-        'prestataire' => $prestataire,
-        'service' => $service
-    ], 201);
-
-}
-
-public function login(LoginPrestataireRequest $request) {
-       $prestataire = Prestataire::where('email',$request->email)->first();
-   if( !$prestataire || !Hash::check($request->password, $prestataire->password)){
-       throw ValidationException::withMessages(
-        [
-            'email' => ['Les informations de connexion sont incorrectes!'],
+        $prestataire = Prestataire::create([
+            'nom' => $validatedData['nom'],
+            'prenom' => $validatedData['prenom'],
+            'email' => $validatedData['email'],
+            'telephone' => $validatedData['telephone'],
+            'ville' => $validatedData['ville'],
+            'zone' => $validatedData['zone'],
+            'password' => Hash::make($validatedData['password']),
+            'note_moyenne' => 0,
+            'image' => null, // image par défaut sera envoyée côté front
         ]);
-   }
-   $token = $prestataire->createToken('auth_token')->plainTextToken;
-   return response()->json([
-    'message' => 'Connexion reussie!',
-    'prestataire' => $prestataire,
-    'token' => $token,
-    'token_type' => 'Bearer',
-   ], 200);
-  }
 
-  public function updateProfile(UpdateProfileRequest $request) {
-    $prestataire = $request->user();
+        $service = Service::create([
+            'id_prestataire' => $prestataire->id,
+            'categorie' => $validatedData['categorie'],
+        ]);
 
-    $validatedData = $request->validated();
-
-    $prestataire->nom = $validatedData['nom'];
-    $prestataire->prenom = $validatedData['prenom'];
-    $prestataire->email = $validatedData['email'];
-    $prestataire->telephone = $validatedData['telephone'];
-
-    if ($request->hasFile('image')) {
-        if ($prestataire->image) {
-            $oldImagePath = storage_path('app/public/profile_image/' . $prestataire->image);
-            if (file_exists($oldImagePath)) {
-                unlink($oldImagePath);
-            }
-        }
-        $imageName = time() . '.' . $request->image->extension();
-
-        $path = $request->image->storeAs('profile_image', $imageName, 'public');
-
-
-        $prestataire->image = $imageName;
+        return response()->json([
+            'message' => 'Prestataire inscrit avec succès!',
+            'prestataire' => $prestataire,
+            'service' => $service
+        ], 201);
     }
 
-    $prestataire->save();
+    // ================================
+    // LOGIN
+    // ================================
+    public function login(LoginPrestataireRequest $request)
+    {
+        $prestataire = Prestataire::where('email', $request->email)->first();
 
-    $imageDefault = asset('storage/profile_image/default-profile.jpg');
+        if (!$prestataire || !Hash::check($request->password, $prestataire->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['Les informations de connexion sont incorrectes!'],
+            ]);
+        }
 
-    return response()->json([
-        'message' => 'Profil mis à jour avec succès',
-        'prestataire' => [
+        $token = $prestataire->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Connexion reussie!',
+            'prestataire' => $prestataire,
+            'token' => $token,
+            'token_type' => 'Bearer',
+        ], 200);
+    }
+
+    // ================================
+    // UPDATE PROFILE
+    // ================================
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $prestataire = $request->user();
+        $validatedData = $request->validated();
+
+        $prestataire->nom = $validatedData['nom'];
+        $prestataire->prenom = $validatedData['prenom'];
+        $prestataire->email = $validatedData['email'];
+        $prestataire->telephone = $validatedData['telephone'];
+
+        if ($request->hasFile('image')) {
+
+            // Delete old file (PUBLIC)
+            if ($prestataire->image) {
+                $oldPath = public_path('profile_image/' . $prestataire->image);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+
+            // Save new file (PUBLIC)
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->move(public_path('profile_image'), $imageName);
+
+            $prestataire->image = $imageName;
+        }
+
+        $prestataire->save();
+
+        $imageDefault = asset('profile_image/default-profile.jpg');
+
+        return response()->json([
+            'message' => 'Profil mis à jour avec succès',
+            'prestataire' => [
+                'nom' => $prestataire->nom,
+                'prenom' => $prestataire->prenom,
+                'email' => $prestataire->email,
+                'telephone' => $prestataire->telephone,
+                'membre_depuis' => $prestataire->created_at->format('M d, Y'),
+                'image' => $prestataire->image
+                    ? asset('profile_image/' . $prestataire->image)
+                    : $imageDefault
+            ]
+        ]);
+    }
+
+    // ================================
+    // UPDATE PASSWORD
+    // ================================
+    public function updatePassword(UpdatePasswordRequest $request)
+    {
+        $prestataire = Auth::user();
+        $prestataire->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json([
+            'message' => 'Mot de passe changé avec succès!'
+        ], 200);
+    }
+
+    // ================================
+    // GET INFO
+    // ================================
+    public function getInformation(Request $request)
+    {
+        $prestataire = $request->user();
+        $imageDefault = asset('profile_image/default-profile.jpg');
+
+        return response()->json([
             'nom' => $prestataire->nom,
             'prenom' => $prestataire->prenom,
             'email' => $prestataire->email,
             'telephone' => $prestataire->telephone,
             'membre_depuis' => $prestataire->created_at->format('M d, Y'),
             'image' => $prestataire->image
-                ? asset('storage/profile_image/' . $prestataire->image)
-                : $imageDefault
-        ]
-    ]);
-}
-
-public function updatePassword(UpdatePasswordRequest $request) {
-    $prestataire = Auth::user();
-    $prestataire->update(
-        [
-            'password' => Hash::make($request->new_password) // rani hachito 7ta hnaya
-        ]
-    );
-    return response()->json([
-        'message' => 'Mot de passe change avec succes!'
-    ], 200);
-}
-
-public function getInformation(Request $request){
-    $prestataire = $request->user();
-    $imageDefault = asset('storage/profile_image/default-profile.jpg');
-
-    return response()->json([
-        'nom' => $prestataire->nom,
-        'prenom' => $prestataire->prenom,
-        'email' => $prestataire->email,
-        'telephone' => $prestataire->telephone,
-        'membre_depuis' => $prestataire->created_at->format('M d, Y'),
-        'image' => $prestataire->image
-            ? asset('storage/profile_image/' . $prestataire->image)
-            : $imageDefault,
-    ]);
-}
-
-public function setparameter(setparameterRequest $request){
-    $prestataire = Auth::user();
-    $validatedData = $request->validated();
-    $dataToUpdate = [
-        'bio' => $validatedData['bio'] ?? $prestataire->bio,
-        'prix' => $validatedData['prix_heure'] ?? $prestataire->prix_heure,
-        'facebook_url' => $validatedData['facebook_url'] ?? $prestataire->facebook_url ,
-        'linkedin_url' => $validatedData['linkedin_url'] ?? $prestataire->linkedin_url ,
-    ];
-      if(!$request->hasFile('carte_identite') && !$prestataire->carte_identite){
-        if($prestataire->status == 'pending'){
-            return response()->json([
-                'message' => "Veuillez entrer votre pièce d’identité afin de traiter votre demande.  "
-            ], 403);
-        }
-      }
-
-  if($request->hasFile('carte_identite')){
-    //mli kaykon staus approved
-     if($prestataire->status == 'approved'){
-       return response()->json([
-            'message' => "Vous ne pouvez pas modifier votre piece d'identite apres approbation.",
-         ], 403);
-     }
-     //mli kaykon status pending wla rejected
-      if($prestataire->carte_identite){
-        Storage::disk('public')->delete($prestataire->carte_identite);
-      }
-      $path = $request->file('carte_identite')->store('id_cards' , 'public');
-      $dataToUpdate['carte_identite'] = $path;
-  }
-  $prestataire->update($dataToUpdate);
-    return response()->json([
-        'message' => 'Parametres mis a jour avec succes '
-    ], 200);
-}
-
-public function show($id){
-    try {
-        $prestataire = Prestataire::with(['reservations', 'service'])
-            ->withCount([
-                'reservations as total_prestations' => fn($q) => $q->where('statut', 'confirmee') // ✅ 'statut' pas 'status'
-            ])
-            ->findOrFail($id);
-
-        $imageDefault = asset('storage/profile_image/default-profile.jpg');
-
-        $service = $prestataire->service;
-        $serviceId = $service->id ?? null;
-        $serviceName = $service->categorie ?? 'Non spécifié';
-        $prixHeure = $prestataire->prix_heure ?? null;
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'id' => $prestataire->id,
-                'nom' => $prestataire->nom,
-                'prenom' => $prestataire->prenom,
-                'email' => $prestataire->email,
-                'telephone' => $prestataire->telephone,
-                'ville' => $prestataire->ville,
-                'zone' => $prestataire->zone,
-                'bio' => $prestataire->bio,
-
-                'service_id' => $serviceId,
-                'service_name' => $serviceName,
-                'prix' => $prixHeure,
-
-                'facebook_url' => $prestataire->facebook_url,
-                'linkedin_url' => $prestataire->linkedin_url,
-
-                'membre_depuis' => $prestataire->created_at->format('M d, Y'),
-
-                'photo' => $prestataire->image
-                    ? asset('storage/profile_image/' . $prestataire->image)
-                    : $imageDefault,
-
-                'total_prestations' => $prestataire->total_prestations ?? 0,
-            ]
-        ], 200);
-
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Prestataire non trouvé'
-        ], 404);
-    } catch (\Exception $e) {
-        \Log::error('Erreur show Prestataire:', ['error' => $e->getMessage()]);
-        return response()->json([
-            'success' => false,
-            'message' => 'Erreur serveur lors de la récupération du prestataire'
-        ], 500);
+                ? asset('profile_image/' . $prestataire->image)
+                : $imageDefault,
+        ]);
     }
-}
 
-public function logout(Request $request){
-    $prestataire = $request->user();
-    $prestataire->tokens()->delete();
-    return response()->json([
-        'message' => 'Déconnexion réussie!'
-    ], 200);
+    // ================================
+    // SET PARAMS
+    // ================================
+    public function setparameter(setparameterRequest $request)
+    {
+        $prestataire = Auth::user();
+        $validatedData = $request->validated();
 
+        $dataToUpdate = [
+            'bio' => $validatedData['bio'] ?? $prestataire->bio,
+            'prix_heure' => $validatedData['prix_heure'] ?? $prestataire->prix_heure,
+            'facebook_url' => $validatedData['facebook_url'] ?? $prestataire->facebook_url,
+            'linkedin_url' => $validatedData['linkedin_url'] ?? $prestataire->linkedin_url,
+        ];
 
-}
+        // carte identité obligatoire pour pending
+        if (!$request->hasFile('carte_identite') && !$prestataire->carte_identite) {
+            if ($prestataire->status == 'pending') {
+                return response()->json([
+                    'message' => "Veuillez entrer votre pièce d’identité afin de traiter votre demande."
+                ], 403);
+            }
+        }
 
-public function index(Request $request){
+        // Upload carte identité
+        if ($request->hasFile('carte_identite')) {
+
+            if ($prestataire->status == 'approved') {
+                return response()->json([
+                    'message' => "Vous ne pouvez pas modifier votre pièce d'identité après approbation."
+                ], 403);
+            }
+
+            // delete old (PUBLIC)
+            if ($prestataire->carte_identite) {
+                $oldCard = public_path($prestataire->carte_identite);
+                if (file_exists($oldCard)) unlink($oldCard);
+            }
+
+            // save new (PUBLIC)
+            $filename = time() . '.' . $request->carte_identite->extension();
+            $request->carte_identite->move(public_path('id_cards'), $filename);
+
+            $dataToUpdate['carte_identite'] = 'id_cards/' . $filename;
+        }
+
+        $prestataire->update($dataToUpdate);
+
+        return response()->json([
+            'message' => 'Paramètres mis à jour avec succès'
+        ], 200);
+    }
+
+    // ================================
+    // SHOW
+    // ================================
+    public function show($id)
+    {
+        try {
+            $prestataire = Prestataire::with(['reservations', 'service'])
+                ->withCount(['reservations as total_prestations' => fn($q) => $q->where('statut', 'confirmee')])
+                ->findOrFail($id);
+
+            $imageDefault = asset('profile_image/default-profile.jpg');
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $prestataire->id,
+                    'nom' => $prestataire->nom,
+                    'prenom' => $prestataire->prenom,
+                    'email' => $prestataire->email,
+                    'telephone' => $prestataire->telephone,
+                    'ville' => $prestataire->ville,
+                    'zone' => $prestataire->zone,
+                    'bio' => $prestataire->bio,
+
+                    'service_id' => $prestataire->service->id ?? null,
+                    'service_name' => $prestataire->service->categorie ?? 'Non spécifié',
+                    'prix' => $prestataire->prix_heure,
+
+                    'facebook_url' => $prestataire->facebook_url,
+                    'linkedin_url' => $prestataire->linkedin_url,
+                    'membre_depuis' => $prestataire->created_at->format('M d, Y'),
+
+                    'photo' => $prestataire->image
+                        ? asset('profile_image/' . $prestataire->image)
+                        : $imageDefault,
+
+                    'total_prestations' => $prestataire->total_prestations ?? 0,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Prestataire non trouvé'], 404);
+        }
+    }
+
+    // ================================
+    // LOGOUT
+    // ================================
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json([
+            'message' => 'Déconnexion réussie!'
+        ], 200);
+    }
+
+    // ================================
+    // INDEX LIST
+    // ================================
+    public function index(Request $request)
+    {
+        // (inchangé — juste images corrigées)
         $ville = $request->query('ville');
         $zone = $request->query('zone');
         $prix_min = $request->query('prix_min');
@@ -254,32 +285,23 @@ public function index(Request $request){
         $query = Prestataire::query()
             ->with(['service'])
             ->withCount([
-                'reservations as nombre_prestations' => function($query) {
+                'reservations as nombre_prestations' => function ($query) {
                     $query->whereIn('statut', ['confirmé', 'terminé']);
                 }
             ])
             ->withCount('avis as nombre_avis');
 
-        if ($ville) {
-            $query->where('ville', $ville);
-        }
-
-        if ($zone) {
-            $query->where('zone', $zone);
-        }
+        if ($ville) $query->where('ville', $ville);
+        if ($zone) $query->where('zone', $zone);
 
         if ($prix_min || $prix_max) {
-            if ($prix_min && $prix_max) {
-                $query->whereBetween('prix_heure', [$prix_min, $prix_max]);
-            } elseif ($prix_min) {
-                $query->where('prix_heure', '>=', $prix_min);
-            } elseif ($prix_max) {
-                $query->where('prix_heure', '<=', $prix_max);
-            }
+            if ($prix_min && $prix_max) $query->whereBetween('prix_heure', [$prix_min, $prix_max]);
+            elseif ($prix_min) $query->where('prix_heure', '>=', $prix_min);
+            elseif ($prix_max) $query->where('prix_heure', '<=', $prix_max);
         }
 
         if ($categorie) {
-            $query->whereHas('service', function($q) use ($categorie) {
+            $query->whereHas('service', function ($q) use ($categorie) {
                 $q->where('categorie', $categorie);
             });
         }
@@ -298,51 +320,30 @@ public function index(Request $request){
             case 'nombre_prestations':
                 $query->orderBy('nombre_prestations', 'desc');
                 break;
-            case 'created_at':
             default:
                 $query->orderBy('created_at', 'desc');
-                break;
         }
 
-
         $prestataires = $query->paginate($per_page);
+        $imageDefault = asset('profile_image/default-profile.jpg');
 
-        $imageDefault = asset('storage/profile_image/default-profile.jpg');
-
-        $prestatairesList = $prestataires->map(function($prestataire) use ($imageDefault) {
+        $prestatairesList = $prestataires->map(function ($p) use ($imageDefault) {
             return [
-                'id' => $prestataire->id,
-                'nom' => $prestataire->nom,
-                'prenom' => $prestataire->prenom,
-                'image' => $prestataire->image
-                    ? asset('storage/profile_image/' . $prestataire->image)
-                    : $imageDefault,
-                'ville' => $prestataire->ville,
-                'zone' => $prestataire->zone,
-                'prix_heure' => $prestataire->prix_heure,
-                'note_moyenne' => round($prestataire->note_moyenne ?? 0, 1),
-                'nombre_prestations' => $prestataire->nombre_prestations ?? 0,
-                'nombre_avis' => $prestataire->nombre_avis ?? 0,
+                'id' => $p->id,
+                'nom' => $p->nom,
+                'prenom' => $p->prenom,
+                'image' => $p->image ? asset('profile_image/' . $p->image) : $imageDefault,
+                'ville' => $p->ville,
+                'zone' => $p->zone,
+                'prix_heure' => $p->prix_heure,
+                'note_moyenne' => round($p->note_moyenne ?? 0, 1),
+                'nombre_prestations' => $p->nombre_prestations ?? 0,
+                'nombre_avis' => $p->nombre_avis ?? 0,
                 'service' => [
-                    'categorie' => $prestataire->service->categorie ?? 'N/A'
+                    'categorie' => $p->service->categorie ?? 'N/A'
                 ]
             ];
         });
-
-        $villes = Prestataire::distinct()->pluck('ville')->filter()->values();
-        $zones = Prestataire::distinct()->pluck('zone')->filter()->values();
-
-        $categories = Service::select('categorie')
-            ->selectRaw('COUNT(DISTINCT id_prestataire) as count')
-            ->whereNotNull('id_prestataire')
-            ->groupBy('categorie')
-            ->get()
-            ->map(function($service) {
-                return [
-                    'nom' => $service->categorie,
-                    'count' => $service->count
-                ];
-            });
 
         return response()->json([
             'prestataires' => $prestatairesList,
@@ -353,52 +354,40 @@ public function index(Request $request){
                 'per_page' => $prestataires->perPage(),
                 'from' => $prestataires->firstItem(),
                 'to' => $prestataires->lastItem()
-            ],
-            'filters' => [
-                'villes' => $villes,
-                'zones' => $zones,
-                'categories' => $categories
             ]
         ], 200);
     }
 
-
- public function show_all(){
-        try {
-            $prestataires = Prestataire::all();
-
-            // Retourne les données en JSON avec un code 200 OK
-            return response()->json($prestataires, 200);
-
-        } catch (\Exception $e) {
-            // Gestion d'erreur, utile pour le débogage
-            return response()->json([
-                'message' => 'Erreur lors de la récupération des prestataires.',
-                'error' => $e->getMessage()
-            ], 500); // Code 500 pour une erreur interne du serveur
-        }
-}
-
-
-
-public function destroy(Prestataire $prestataire) {
+    // ================================
+    // DELETE
+    // ================================
+    public function destroy(Prestataire $prestataire)
+    {
         try {
             if ($prestataire->carte_identite) {
-                Storage::disk('public/id_cards')->delete($prestataire->carte_identite);
+                $path = public_path($prestataire->carte_identite);
+                if (file_exists($path)) unlink($path);
+            }
+
+            if ($prestataire->image) {
+                $path = public_path('profile_image/' . $prestataire->image);
+                if (file_exists($path)) unlink($path);
             }
 
             $prestataire->delete();
 
-            return response()->json(['message' => 'Prestataire annulé (supprimé) avec succès.'], 200);
+            return response()->json(['message' => 'Prestataire supprimé avec succès.'], 200);
 
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur lors de la suppression.', 'error' => $e->getMessage()], 500);
         }
-}
+    }
 
-
-
-public function activate(Prestataire $prestataire){
+    // ================================
+    // ACTIVATE
+    // ================================
+    public function activate(Prestataire $prestataire)
+    {
         try {
             $prestataire->status = 'active';
             $prestataire->save();
@@ -408,11 +397,5 @@ public function activate(Prestataire $prestataire){
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erreur lors de l\'activation.', 'error' => $e->getMessage()], 500);
         }
-      }
-
-
-
-
-
-
+    }
 }

@@ -23,7 +23,7 @@ Route::post('/prestataire/parameter',[PrestataireController::class,'setparameter
 Route::get('/prestataires', [PrestataireController::class, 'index']);
 
 // -----hadi dyal admin
-Route::get('prestataires', [PrestataireController::class, 'show_all']);
+//Route::get('prestataires', [PrestataireController::class, 'show_all']);
 Route::delete('prestataires/{prestataire}', [PrestataireController::class, 'destroy']);
 Route::put('prestataires/activer/{prestataire}', [PrestataireController::class, 'activate']);
 
