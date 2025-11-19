@@ -241,128 +241,127 @@ public function logout(Request $request){
 
 }
 
-public function index(Request $request){
-        $ville = $request->query('ville');
-        $zone = $request->query('zone');
-        $prix_min = $request->query('prix_min');
-        $prix_max = $request->query('prix_max');
-        $categorie = $request->query('categorie');
-        $note_min = $request->query('note_min');
-        $sort = $request->query('sort', 'created_at');
-        $per_page = $request->query('per_page', 12);
+public function index(Request $request)
+{
+    $ville = $request->query('ville');
+    $zone = $request->query('zone');
+    $prix_min = $request->query('prix_min');
+    $prix_max = $request->query('prix_max');
+    $categorie = $request->query('categorie');
+    $note_min = $request->query('note_min');
+    $sort = $request->query('sort', 'created_at');
+    $per_page = $request->query('per_page', 12);
 
-        $query = Prestataire::query()
-            ->where('statut', 'active')
-            ->with(['service'])
-            ->withCount([
-                'reservations as nombre_prestations' => function($query) {
-                    $query->whereIn('statut', ['active']);
-                }
-            ])
-            ->withCount('avis as nombre_avis');
-
-        if ($ville) {
-            $query->where('ville', $ville);
-        }
-
-        if ($zone) {
-            $query->where('zone', $zone);
-        }
-
-        if ($prix_min || $prix_max) {
-            if ($prix_min && $prix_max) {
-                $query->whereBetween('prix_heure', [$prix_min, $prix_max]);
-            } elseif ($prix_min) {
-                $query->where('prix_heure', '>=', $prix_min);
-            } elseif ($prix_max) {
-                $query->where('prix_heure', '<=', $prix_max);
+    $query = Prestataire::query()
+        ->where('statut', 'active')
+        ->with(['service'])
+        ->withCount([
+            'reservations as nombre_prestations' => function($query) {
+                $query->where('statut', 'active');
             }
+        ])
+        ->withCount('avis as nombre_avis');
+
+    if ($ville) {
+        $query->where('ville', $ville);
+    }
+
+    if ($zone) {
+        $query->where('zone', $zone);
+    }
+
+    if ($prix_min || $prix_max) {
+        if ($prix_min && $prix_max) {
+            $query->whereBetween('prix_heure', [$prix_min, $prix_max]);
+        } elseif ($prix_min) {
+            $query->where('prix_heure', '>=', $prix_min);
+        } elseif ($prix_max) {
+            $query->where('prix_heure', '<=', $prix_max);
         }
+    }
 
-        if ($categorie) {
-            $query->whereHas('service', function($q) use ($categorie) {
-                $q->where('categorie', $categorie);
-            });
-        }
+    if ($categorie) {
+        $query->whereHas('service', function($q) use ($categorie) {
+            $q->where('categorie', $categorie);
+        });
+    }
 
-        if ($note_min) {
-            $query->where('note_moyenne', '>=', $note_min);
-        }
+    if ($note_min) {
+        $query->where('note_moyenne', '>=', $note_min);
+    }
 
-        switch ($sort) {
-            case 'note_moyenne':
-                $query->orderBy('note_moyenne', 'desc');
-                break;
-            case 'prix_heure':
-                $query->orderBy('prix_heure', 'asc');
-                break;
-            case 'nombre_prestations':
-                $query->orderBy('nombre_prestations', 'desc');
-                break;
-            case 'created_at':
-            default:
-                $query->orderBy('created_at', 'desc');
-                break;
-        }
+    switch ($sort) {
+        case 'note_moyenne':
+            $query->orderBy('note_moyenne', 'desc');
+            break;
+        case 'prix_heure':
+            $query->orderBy('prix_heure', 'asc');
+            break;
+        case 'nombre_prestations':
+            $query->orderBy('nombre_prestations', 'desc');
+            break;
+        case 'created_at':
+        default:
+            $query->orderBy('created_at', 'desc');
+            break;
+    }
 
+    $prestataires = $query->paginate($per_page);
 
-        $prestataires = $query->paginate($per_page);
+    $imageDefault = asset('profile_image/default-profile.jpg');
 
-        $imageDefault = asset('profile_image/default-profile.jpg');
+    $prestatairesList = $prestataires->map(function($prestataire) use ($imageDefault) {
+        return [
+            'id' => $prestataire->id,
+            'nom' => $prestataire->nom,
+            'prenom' => $prestataire->prenom,
+            'image' => $prestataire->image
+                ? asset('profile_image/' . $prestataire->image)
+                : $imageDefault,
+            'ville' => $prestataire->ville,
+            'zone' => $prestataire->zone,
+            'prix_heure' => $prestataire->prix_heure,
+            'note_moyenne' => round($prestataire->note_moyenne ?? 0, 1),
+            'nombre_prestations' => $prestataire->nombre_prestations ?? 0,
+            'nombre_avis' => $prestataire->nombre_avis ?? 0,
+            'service' => [
+                'categorie' => $prestataire->service->categorie ?? 'N/A'
+            ]
+        ];
+    });
 
-        $prestatairesList = $prestataires->map(function($prestataire) use ($imageDefault) {
+    $villes = Prestataire::where('statut', 'active')->distinct()->pluck('ville')->filter()->values();
+    $zones = Prestataire::where('statut', 'active')->distinct()->pluck('zone')->filter()->values();
+
+    $categories = Service::select('categorie')
+        ->selectRaw('COUNT(DISTINCT id_prestataire) as count')
+        ->whereNotNull('id_prestataire')
+        ->groupBy('categorie')
+        ->get()
+        ->map(function($service) {
             return [
-                'id' => $prestataire->id,
-                'nom' => $prestataire->nom,
-                'prenom' => $prestataire->prenom,
-                'image' => $prestataire->image
-                    ? asset('profile_image/' . $prestataire->image)
-                    : $imageDefault,
-                'ville' => $prestataire->ville,
-                'zone' => $prestataire->zone,
-                'prix_heure' => $prestataire->prix_heure,
-                'note_moyenne' => round($prestataire->note_moyenne ?? 0, 1),
-                'nombre_prestations' => $prestataire->nombre_prestations ?? 0,
-                'nombre_avis' => $prestataire->nombre_avis ?? 0,
-                'service' => [
-                    'categorie' => $prestataire->service->categorie ?? 'N/A'
-                ]
+                'nom' => $service->categorie,
+                'count' => $service->count
             ];
         });
 
-        $villes = Prestataire::where('statut', 'active')->distinct()->pluck('ville')->filter()->values();
-        $zones = Prestataire::where('statut', 'active')->distinct()->pluck('zone')->filter()->values();
-
-        $categories = Service::select('categorie')
-            ->selectRaw('COUNT(DISTINCT id_prestataire) as count')
-            ->whereNotNull('id_prestataire')
-            ->groupBy('categorie')
-            ->get()
-            ->map(function($service) {
-                return [
-                    'nom' => $service->categorie,
-                    'count' => $service->count
-                ];
-            });
-
-        return response()->json([
-            'prestataires' => $prestatairesList,
-            'pagination' => [
-                'current_page' => $prestataires->currentPage(),
-                'last_page' => $prestataires->lastPage(),
-                'total' => $prestataires->total(),
-                'per_page' => $prestataires->perPage(),
-                'from' => $prestataires->firstItem(),
-                'to' => $prestataires->lastItem()
-            ],
-            'filters' => [
-                'villes' => $villes,
-                'zones' => $zones,
-                'categories' => $categories
-            ]
-        ], 200);
-    }
-
+    return response()->json([
+        'prestataires' => $prestatairesList,
+        'pagination' => [
+            'current_page' => $prestataires->currentPage(),
+            'last_page' => $prestataires->lastPage(),
+            'total' => $prestataires->total(),
+            'per_page' => $prestataires->perPage(),
+            'from' => $prestataires->firstItem(),
+            'to' => $prestataires->lastItem()
+        ],
+        'filters' => [
+            'villes' => $villes,
+            'zones' => $zones,
+            'categories' => $categories
+        ]
+    ], 200);
+}
 
  public function show_all(){
         try {
