@@ -172,7 +172,18 @@ public function setparameter(setparameterRequest $request){
         'message' => 'Parametres mis a jour avec succes '
     ], 200);
 }
+public function getparameter(Request $request){
+    $prestataire = $request->user();
 
+    return response()->json([
+        'bio' => $prestataire->bio,
+        'prix_heure' => $prestataire->prix_heure,
+        'facebook_url' => $prestataire->facebook_url,
+        'linkedin_url' => $prestataire->linkedin_url,
+        'carte_identite_path' => $prestataire->carte_identite,
+        'status' => $prestataire->statut, // 'pending', 'active', 'rejected'
+    ], 200);
+}
 public function show($id){
     try {
         $prestataire = Prestataire::with(['reservations', 'service'])
