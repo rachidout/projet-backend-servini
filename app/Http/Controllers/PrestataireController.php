@@ -17,96 +17,118 @@ use Illuminate\Support\Facades\Storage;
 
 class PrestataireController extends Controller {
 
-public function register(RegisterPrestataireRequest $request){
-    $validatedData = $request->validated();
+    public function register(RegisterPrestataireRequest $request){
+        $validatedData = $request->validated();
 
-    $imageDefault = asset('profile_image/default-profile.jpg');
+        // Gérer l'upload de l'image lors de l'inscription
+        $imageName = 'default-profile.jpg'; // Image par défaut
 
-    $prestataire = Prestataire::create([
-        'nom' => $validatedData['nom'],
-        'prenom' => $validatedData['prenom'],
-        'email' => $validatedData['email'],
-        'telephone' => $validatedData['telephone'],
-        'ville' => $validatedData['ville'],
-        'zone' => $validatedData['zone'],
-        'password' => Hash::make($validatedData['password']),
-        'note_moyenne' => 0,
-        'image' => $imageDefault,
-    ]);
-
-    $service = Service::create([
-        'id_prestataire' => $prestataire->id,
-        'categorie' => $validatedData['categorie'],
-    ]);
-
-    return response()->json([
-        'message' => 'Prestataire inscrit avec succès!',
-        'prestataire' => $prestataire,
-        'service' => $service
-    ], 201);
-
-}
-
-public function login(LoginPrestataireRequest $request) {
-       $prestataire = Prestataire::where('email',$request->email)->first();
-   if( !$prestataire || !Hash::check($request->password, $prestataire->password)){
-       throw ValidationException::withMessages(
-        [
-            'email' => ['Les informations de connexion sont incorrectes!'],
-        ]);
-   }
-   $token = $prestataire->createToken('auth_token')->plainTextToken;
-   return response()->json([
-    'message' => 'Connexion reussie!',
-    'prestataire' => $prestataire,
-    'token' => $token,
-    'token_type' => 'Bearer',
-   ], 200);
-  }
-
-  public function updateProfile(UpdateProfileRequest $request) {
-    $prestataire = $request->user();
-
-    $validatedData = $request->validated();
-
-    $prestataire->nom = $validatedData['nom'];
-    $prestataire->prenom = $validatedData['prenom'];
-    $prestataire->email = $validatedData['email'];
-    $prestataire->telephone = $validatedData['telephone'];
-
-    if ($request->hasFile('image')) {
-       if ($prestataire->image && $prestataire->image !== 'default-profile.jpg') {
-    $oldImagePath = public_path('profile_image/' . $prestataire->image);
-    if (file_exists($oldImagePath)) {
-        unlink($oldImagePath);
-    }
+        if ($request->hasFile('image')) {
+            $imageName = time() . '_' . uniqid() . '.' . $request->image->extension();
+            $request->image->move(public_path('profile_image'), $imageName);
         }
-        $imageName = time() . '.' . $request->image->extension();
 
-        $path = $request->image->storeAs('profile_image', $imageName, 'public');
+        $prestataire = Prestataire::create([
+            'nom' => $validatedData['nom'],
+            'prenom' => $validatedData['prenom'],
+            'email' => $validatedData['email'],
+            'telephone' => $validatedData['telephone'],
+            'ville' => $validatedData['ville'],
+            'zone' => $validatedData['zone'],
+            'password' => Hash::make($validatedData['password']),
+            'note_moyenne' => 0,
+            'image' => $imageName,
+        ]);
 
+        $service = Service::create([
+            'id_prestataire' => $prestataire->id,
+            'categorie' => $validatedData['categorie'],
+        ]);
 
-        $prestataire->image = $imageName;
+        return response()->json([
+            'message' => 'Prestataire inscrit avec succès!',
+            'prestataire' => [
+                'id' => $prestataire->id,
+                'nom' => $prestataire->nom,
+                'prenom' => $prestataire->prenom,
+                'email' => $prestataire->email,
+                'telephone' => $prestataire->telephone,
+                'ville' => $prestataire->ville,
+                'zone' => $prestataire->zone,
+                'image' => asset('profile_image/' . $prestataire->image),
+            ],
+            'service' => $service
+        ], 201);
     }
 
-    $prestataire->save();
+    public function login(LoginPrestataireRequest $request) {
+        $prestataire = Prestataire::where('email',$request->email)->first();
 
-    $imageDefault = asset('profile_image/default-profile.jpg');
+        if(!$prestataire || !Hash::check($request->password, $prestataire->password)){
+            throw ValidationException::withMessages([
+                'email' => ['Les informations de connexion sont incorrectes!'],
+            ]);
+        }
 
-    return response()->json([
-        'message' => 'Profil mis à jour avec succès',
-        'prestataire' => [
-            'nom' => $prestataire->nom,
-            'prenom' => $prestataire->prenom,
-            'email' => $prestataire->email,
-            'telephone' => $prestataire->telephone,
-            'membre_depuis' => $prestataire->created_at->format('M d, Y'),
-            'image' => $prestataire->image
-                ? asset('profile_image/' . $prestataire->image)
-                : $imageDefault
-        ]
-    ]);
-}
+        $token = $prestataire->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Connexion reussie!',
+            'prestataire' => [
+                'id' => $prestataire->id,
+                'nom' => $prestataire->nom,
+                'prenom' => $prestataire->prenom,
+                'email' => $prestataire->email,
+                'telephone' => $prestataire->telephone,
+                'image' => asset('profile_image/' . $prestataire->image),
+            ],
+            'token' => $token,
+            'token_type' => 'Bearer',
+        ], 200);
+    }
+
+    public function updateProfile(UpdateProfileRequest $request) {
+        $prestataire = $request->user();
+        $validatedData = $request->validated();
+
+        $prestataire->nom = $validatedData['nom'];
+        $prestataire->prenom = $validatedData['prenom'];
+        $prestataire->email = $validatedData['email'];
+        $prestataire->telephone = $validatedData['telephone'];
+
+        // Gérer le changement d'image
+        if ($request->hasFile('image')) {
+            // Supprimer l'ancienne image (sauf si c'est l'image par défaut)
+            if ($prestataire->image && $prestataire->image !== 'default-profile.jpg') {
+                $oldImagePath = public_path('profile_image/' . $prestataire->image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            // Upload la nouvelle image
+            $imageName = time() . '_' . uniqid() . '.' . $request->image->extension();
+            $request->image->move(public_path('profile_image'), $imageName);
+            $prestataire->image = $imageName;
+        }
+
+        $prestataire->save();
+
+        return response()->json([
+            'message' => 'Profil mis à jour avec succès',
+            'prestataire' => [
+                'id' => $prestataire->id,
+                'nom' => $prestataire->nom,
+                'prenom' => $prestataire->prenom,
+                'email' => $prestataire->email,
+                'telephone' => $prestataire->telephone,
+                'ville' => $prestataire->ville,
+                'zone' => $prestataire->zone,
+                'membre_depuis' => $prestataire->created_at->format('M d, Y'),
+                'image' => asset('profile_image/' . $prestataire->image)
+            ]
+        ]);
+    }
 
 public function updatePassword(UpdatePasswordRequest $request) {
     $prestataire = Auth::user();
