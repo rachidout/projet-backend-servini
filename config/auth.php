@@ -12,10 +12,16 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
         'sanctum' => [
             'driver' => 'sanctum',
-            'provider' => 'prestataires',
-        ]
+            'provider' => null,
+        ],
+
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'admins',
+        ],
     ],
 
     'providers' => [
@@ -24,6 +30,10 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Admin::class,
+        ],
 
         'prestataires' => [
             'driver' => 'eloquent',

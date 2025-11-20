@@ -5,9 +5,53 @@ namespace App\Http\Controllers;
 use App\Models\Prestataire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Admin;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
+
+       public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        // Pour débugger : vérifions d'abord si l'admin est trouvé
+        $admin = Admin::where('email', $request->email)->first();
+
+        if (!$admin) {
+            return response()->json(['message' => 'Aucun compte admin trouvé avec cet email'], 401);
+        }
+
+        if (!Hash::check($request->password, $admin->password)) {
+            return response()->json(['message' => 'Mot de passe incorrect'], 401);
+        }
+
+        // Supprimer les anciens tokens (optionnel)
+        $admin->tokens()->delete();
+
+        // Créer un nouveau token
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'admin' => [
+                'id' => $admin->id,
+                'name' => $admin->name,
+                'email' => $admin->email,
+            ],
+            'role' => 'admin'
+        ], 200);
+    }
+
+    // ... Le reste de vos fonctions (logout, show_all, etc.) restent inchangées
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['message' => 'Déconnexion réussie'], 200);
+    }
     // =========================
     // Récupérer tous les prestataires
     // =========================

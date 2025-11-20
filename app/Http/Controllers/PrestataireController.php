@@ -82,6 +82,7 @@ class PrestataireController extends Controller {
                 'telephone' => $prestataire->telephone,
                 'image' => asset('profile_image/' . $prestataire->image),
             ],
+            'role' => 'prestataire',
             'token' => $token,
             'token_type' => 'Bearer',
         ], 200);
