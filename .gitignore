@@ -20,6 +20,7 @@
 /storage/pail
 /vendor
 # Ignorer toutes les images uploadées sauf l'image par défaut
+/public/id_cards/*
 /public/profile_image/*
 !/public/profile_image/default-profile.jpg
 Homestead.json
