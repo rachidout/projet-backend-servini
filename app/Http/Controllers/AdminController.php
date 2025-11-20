@@ -18,7 +18,7 @@ class AdminController extends Controller
             'password' => 'required'
         ]);
 
-        // Pour débugger : vérifions d'abord si l'admin est trouvé
+
         $admin = Admin::where('email', $request->email)->first();
 
         if (!$admin) {
@@ -29,10 +29,9 @@ class AdminController extends Controller
             return response()->json(['message' => 'Mot de passe incorrect'], 401);
         }
 
-        // Supprimer les anciens tokens (optionnel)
         $admin->tokens()->delete();
 
-        // Créer un nouveau token
+
         $token = $admin->createToken('admin-token')->plainTextToken;
 
         return response()->json([
@@ -46,21 +45,20 @@ class AdminController extends Controller
         ], 200);
     }
 
-    // ... Le reste de vos fonctions (logout, show_all, etc.) restent inchangées
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Déconnexion réussie'], 200);
     }
-    // =========================
-    // Récupérer tous les prestataires
-    // =========================
+
+    //bach nrj3o lih tous les prestataires
+    //
     public function show_all()
     {
         try {
             $prestataires = Prestataire::all();
 
-            // Adapter les champs pour le frontend
             $prestataires = $prestataires->map(function ($prestataire) {
                 return [
                     'id'             => $prestataire->id,
@@ -69,7 +67,6 @@ class AdminController extends Controller
                     'telephone'      => $prestataire->telephone,
                     'email'          => $prestataire->email,
                     'ville'          => $prestataire->ville,
-                    // DB = "statut", Front = "status"
                     'status'         => $prestataire->statut ?? 'pending',
                     'carte_identite' => $prestataire->carte_identite,
                 ];
@@ -84,9 +81,9 @@ class AdminController extends Controller
         }
     }
 
-    // =========================
+
     // Supprimer un prestataire
-    // =========================
+
     public function destroy($id)
     {
         try {
@@ -109,9 +106,7 @@ class AdminController extends Controller
         }
     }
 
-    // =========================
-    // Activer (ancienne route, optionnelle)
-    // =========================
+
     public function activate($id)
     {
         try {
@@ -135,9 +130,9 @@ class AdminController extends Controller
         }
     }
 
-    // =========================
+
     // Changer le statut (pending / active / rejected)
-    // =========================
+
     public function updateStatus(Request $request, $id)
     {
         $request->validate([

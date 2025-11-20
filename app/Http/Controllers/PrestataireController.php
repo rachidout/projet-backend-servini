@@ -166,14 +166,13 @@ public function setparameter(setparameterRequest $request){
 
     $dataToUpdate = [
         'bio' => $validatedData['bio'] ?? $prestataire->bio,
-        // Attention : dans ton array, la clé est 'prix' mais la valeur vient de 'prix_heure' ?
-        // Assure-toi que la colonne en base de données est bien 'prix_heure' ou 'prix'
+
         'prix_heure' => $validatedData['prix_heure'] ?? $prestataire->prix_heure,
         'facebook_url' => $validatedData['facebook_url'] ?? $prestataire->facebook_url ,
         'linkedin_url' => $validatedData['linkedin_url'] ?? $prestataire->linkedin_url ,
     ];
 
-    // Vérification si pas de fichier et pas d'ancienne carte (pour le statut pending)
+
     if(!$request->hasFile('carte_identite') && !$prestataire->carte_identite){
         if($prestataire->statut == 'pending'){
             return response()->json([
@@ -182,17 +181,16 @@ public function setparameter(setparameterRequest $request){
         }
     }
 
-    // Traitement de l'upload
     if($request->hasFile('carte_identite')){
 
-        // 1. Vérification du statut approved
+        // Vérification du statut approved
         if($prestataire->statut == 'approved'){
             return response()->json([
                 'message' => "Vous ne pouvez pas modifier votre piece d'identite apres approbation.",
             ], 403);
         }
 
-        // 2. Suppression de l'ancienne image (Directement depuis le dossier public)
+        // 2Suppression de l'ancienne image
         if($prestataire->carte_identite){
             $oldPath = public_path($prestataire->carte_identite);
             if(File::exists($oldPath)){
@@ -200,11 +198,9 @@ public function setparameter(setparameterRequest $request){
             }
         }
 
-        // 3. Enregistrement direct dans public/id_cards
+
         $file = $request->file('carte_identite');
-        // On génère un nom unique pour éviter les écrasements
         $filename = time() . '_' . $file->getClientOriginalName();
-        // La méthode move() déplace le fichier physiquement dans public/id_cards
         $file->move(public_path('id_cards'), $filename);
 
         // On enregistre le chemin relatif dans la base de données
