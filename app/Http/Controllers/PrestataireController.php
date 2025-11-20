@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class PrestataireController extends Controller {
 
@@ -162,37 +163,58 @@ public function getInformation(Request $request){
 public function setparameter(setparameterRequest $request){
     $prestataire = Auth::user();
     $validatedData = $request->validated();
+
     $dataToUpdate = [
         'bio' => $validatedData['bio'] ?? $prestataire->bio,
-        'prix' => $validatedData['prix_heure'] ?? $prestataire->prix_heure,
+        // Attention : dans ton array, la clé est 'prix' mais la valeur vient de 'prix_heure' ?
+        // Assure-toi que la colonne en base de données est bien 'prix_heure' ou 'prix'
+        'prix_heure' => $validatedData['prix_heure'] ?? $prestataire->prix_heure,
         'facebook_url' => $validatedData['facebook_url'] ?? $prestataire->facebook_url ,
         'linkedin_url' => $validatedData['linkedin_url'] ?? $prestataire->linkedin_url ,
     ];
-      if(!$request->hasFile('carte_identite') && !$prestataire->carte_identite){
+
+    // Vérification si pas de fichier et pas d'ancienne carte (pour le statut pending)
+    if(!$request->hasFile('carte_identite') && !$prestataire->carte_identite){
         if($prestataire->statut == 'pending'){
             return response()->json([
-                'message' => "Veuillez entrer votre pièce d’identité afin de traiter votre demande.  "
+                'message' => "Veuillez entrer votre pièce d’identité afin de traiter votre demande."
             ], 403);
         }
-      }
+    }
 
-  if($request->hasFile('carte_identite')){
-    //mli kaykon staus approved
-     if($prestataire->statut == 'approved'){
-       return response()->json([
-            'message' => "Vous ne pouvez pas modifier votre piece d'identite apres approbation.",
-         ], 403);
-     }
-     //mli kaykon statut pending wla rejected
-      if($prestataire->carte_identite){
-        Storage::disk('public')->delete($prestataire->carte_identite);
-      }
-      $path = $request->file('carte_identite')->store('id_cards' , 'public');
-      $dataToUpdate['carte_identite'] = $path;
-  }
-  $prestataire->update($dataToUpdate);
+    // Traitement de l'upload
+    if($request->hasFile('carte_identite')){
+
+        // 1. Vérification du statut approved
+        if($prestataire->statut == 'approved'){
+            return response()->json([
+                'message' => "Vous ne pouvez pas modifier votre piece d'identite apres approbation.",
+            ], 403);
+        }
+
+        // 2. Suppression de l'ancienne image (Directement depuis le dossier public)
+        if($prestataire->carte_identite){
+            $oldPath = public_path($prestataire->carte_identite);
+            if(File::exists($oldPath)){
+                File::delete($oldPath);
+            }
+        }
+
+        // 3. Enregistrement direct dans public/id_cards
+        $file = $request->file('carte_identite');
+        // On génère un nom unique pour éviter les écrasements
+        $filename = time() . '_' . $file->getClientOriginalName();
+        // La méthode move() déplace le fichier physiquement dans public/id_cards
+        $file->move(public_path('id_cards'), $filename);
+
+        // On enregistre le chemin relatif dans la base de données
+        $dataToUpdate['carte_identite'] = 'id_cards/' . $filename;
+    }
+
+    $prestataire->update($dataToUpdate);
+
     return response()->json([
-        'message' => 'Parametres mis a jour avec succes '
+        'message' => 'Parametres mis a jour avec succes'
     ], 200);
 }
 public function getparameter(Request $request){
