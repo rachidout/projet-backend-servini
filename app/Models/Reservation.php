@@ -61,4 +61,9 @@ class Reservation extends Model
     {
         return $query->where('statut', 'terminee');
     }
+
+    public function avis()
+    {
+        return $this->hasMany(Avis::class, 'id_reservation');
+    }
 }

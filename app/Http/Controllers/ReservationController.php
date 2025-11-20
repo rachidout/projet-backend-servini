@@ -4,24 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use App\Models\Service;
-use Illuminate\Http\Request;
+use App\Models\Prestataire;
 use App\Http\Requests\AddReservationRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
-    /**
-     * Créer une nouvelle réservation
-     */
     public function store(AddReservationRequest $request)
     {
         try {
             $validatedData = $request->validated();
 
-            // Récupération du service avec son prestataire
             $service = Service::with('prestataire')->findOrFail($validatedData['service_id']);
 
-            // Vérifier que le service a bien un prestataire
             if (!$service->prestataire) {
                 return response()->json([
                     'success' => false,
@@ -29,7 +26,6 @@ class ReservationController extends Controller
                 ], 400);
             }
 
-            // Vérifier que le service est actif (si la colonne existe)
             if (isset($service->statut) && $service->statut !== 'actif') {
                 return response()->json([
                     'success' => false,
@@ -37,12 +33,10 @@ class ReservationController extends Controller
                 ], 400);
             }
 
-            // ID du prestataire associé au service
             $prestataireId = $service->prestataire->id;
 
             DB::beginTransaction();
 
-            // Création de la réservation
             $reservation = Reservation::create([
                 'id_prestataire'        => $prestataireId,
                 'id_service'            => $validatedData['service_id'],
@@ -57,17 +51,10 @@ class ReservationController extends Controller
                 'statut'                => 'en_attente',
             ]);
 
-            // Charger les relations pour la réponse
             $reservation->load([
                 'service' => function ($query) {
                     $query->with('prestataire');
                 }
-            ]);
-
-            \Log::info('Réservation créée avec relations:', [
-                'reservation_id' => $reservation->id,
-                'service'        => $reservation->service ? 'OK' : 'NULL',
-                'prestataire'    => $reservation->service?->prestataire ? 'OK' : 'NULL'
             ]);
 
             DB::commit();
@@ -81,11 +68,6 @@ class ReservationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::error('Erreur réservation:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
             return response()->json([
                 'success' => false,
                 'message' => 'Échec de la création de la réservation',
@@ -94,42 +76,58 @@ class ReservationController extends Controller
         }
     }
 
-    /**
-     * Lister les réservations d'un prestataire donné (appelé depuis React)
-     * GET /api/prestataires/{id}/reservations
-     */
     public function byPrestataire($id)
     {
-        // Log pour debug
-        \Log::info('Liste des réservations pour le prestataire', [
-            'id_prestataire' => $id,
-        ]);
-
-        // Récupérer toutes les réservations où id_prestataire = {id}
         $reservations = Reservation::where('id_prestataire', $id)->get();
 
         return response()->json($reservations);
     }
 
     public function updateStatus(Request $request, $id)
-{
-    // valider le statut reçu
-    $request->validate([
-        'statut' => 'required|in:en_attente,confirmee,annulee',
-    ]);
+    {
+        $request->validate([
+            'statut' => 'required|in:en_attente,confirmee,annulee',
+        ]);
 
-    // récupérer la réservation
-    $reservation = Reservation::findOrFail($id);
+        $reservation = Reservation::findOrFail($id);
+        $reservation->statut = $request->input('statut');
+        $reservation->save();
 
-    // mettre à jour le statut
-    $reservation->statut = $request->input('statut');
-    $reservation->save();
+        return response()->json([
+            'success' => true,
+            'message' => 'Statut mis à jour',
+            'data'    => $reservation,
+        ]);
+    }
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Statut mis à jour',
-        'data'    => $reservation,
-    ]);
-}
+    public function show($id)
+    {
+        $reservation = Reservation::findOrFail($id);
 
+        $service = Service::find($reservation->id_service);
+
+        $prestataire = null;
+        if ($service) {
+            $prestataire = Prestataire::find($service->id_prestataire);
+        }
+
+        return response()->json([
+            'id'            => $reservation->id,
+            'date'          => Carbon::parse($reservation->date)->format('Y-m-d'),
+            'heure'         => Carbon::parse($reservation->heure)->format('H:i'),
+            'statut'        => $reservation->statut,
+            'client_nom'    => $reservation->client_nom,
+            'client_prenom' => $reservation->client_prenom,
+
+            'prestataire' => [
+                'nom'        => $prestataire?->nom,
+                'prenom'     => $prestataire?->prenom,
+                'prix_heure' => $prestataire?->prix_heure,
+            ],
+
+            'service' => [
+                'categorie'  => $service?->categorie,
+            ],
+        ]);
+    }
 }

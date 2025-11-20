@@ -188,16 +188,18 @@ public function show($id){
     try {
         $prestataire = Prestataire::with(['reservations', 'service'])
             ->withCount([
-                'reservations as total_prestations' => fn($q) => $q->where('statut', 'active') // ✅ 'statut' pas 'statut'
+                'reservations as total_prestations' => fn($q) => $q->where('statut', 'confirmee')
             ])
+            ->withCount('avis as nombre_avis')
             ->findOrFail($id);
 
         $imageDefault = asset('profile_image/default-profile.jpg');
-
         $service = $prestataire->service;
         $serviceId = $service->id ?? null;
         $serviceName = $service->categorie ?? 'Non spécifié';
         $prixHeure = $prestataire->prix_heure ?? null;
+
+
 
         return response()->json([
             'success' => true,
@@ -225,6 +227,8 @@ public function show($id){
                     : $imageDefault,
 
                 'total_prestations' => $prestataire->total_prestations ?? 0,
+                'note_moyenne' => round($prestataire->note_moyenne ?? 0, 1),
+                'nombre_avis' => $prestataire->nombre_avis ?? 0,
             ]
         ], 200);
 
@@ -373,57 +377,4 @@ public function index(Request $request)
         ]
     ], 200);
 }
-
- public function show_all(){
-        try {
-            $prestataires = Prestataire::all();
-
-            // Retourne les données en JSON avec un code 200 OK
-            return response()->json($prestataires, 200);
-
-        } catch (\Exception $e) {
-            // Gestion d'erreur, utile pour le débogage
-            return response()->json([
-                'message' => 'Erreur lors de la récupération des prestataires.',
-                'error' => $e->getMessage()
-            ], 500); // Code 500 pour une erreur interne du serveur
-        }
-}
-
-
-
-public function destroy(Prestataire $prestataire) {
-        try {
-            if ($prestataire->carte_identite) {
-                Storage::disk('public/id_cards')->delete($prestataire->carte_identite);
-            }
-
-            $prestataire->delete();
-
-            return response()->json(['message' => 'Prestataire annulé (supprimé) avec succès.'], 200);
-
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Erreur lors de la suppression.', 'error' => $e->getMessage()], 500);
-        }
-}
-
-
-
-public function activate(Prestataire $prestataire){
-        try {
-            $prestataire->statut = 'active';
-            $prestataire->save();
-
-            return response()->json(['message' => 'Prestataire activé avec succès.'], 200);
-
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Erreur lors de l\'activation.', 'error' => $e->getMessage()], 500);
-        }
-      }
-
-
-
-
-
-
 }
