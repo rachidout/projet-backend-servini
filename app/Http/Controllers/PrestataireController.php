@@ -21,7 +21,6 @@ class PrestataireController extends Controller {
     public function register(RegisterPrestataireRequest $request){
         $validatedData = $request->validated();
 
-        // Gérer l'upload de l'image lors de l'inscription
         $imageName = 'default-profile.jpg'; // Image par défaut
 
         if ($request->hasFile('image')) {
@@ -98,9 +97,8 @@ class PrestataireController extends Controller {
         $prestataire->email = $validatedData['email'];
         $prestataire->telephone = $validatedData['telephone'];
 
-        // Gérer le changement d'image
+
         if ($request->hasFile('image')) {
-            // Supprimer l'ancienne image (sauf si c'est l'image par défaut)
             if ($prestataire->image && $prestataire->image !== 'default-profile.jpg') {
                 $oldImagePath = public_path('profile_image/' . $prestataire->image);
                 if (file_exists($oldImagePath)) {
@@ -183,14 +181,13 @@ public function setparameter(setparameterRequest $request){
 
     if($request->hasFile('carte_identite')){
 
-        // Vérification du statut approved
+
         if($prestataire->statut == 'approved'){
             return response()->json([
                 'message' => "Vous ne pouvez pas modifier votre piece d'identite apres approbation.",
             ], 403);
         }
 
-        // 2Suppression de l'ancienne image
         if($prestataire->carte_identite){
             $oldPath = public_path($prestataire->carte_identite);
             if(File::exists($oldPath)){
