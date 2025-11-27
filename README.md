@@ -1,5 +1,5 @@
 <p align="center">
-<img src="public/logo-homev1.png" width="200" alt="SERVINI Logo">
+<img src="public/logo-home.png" width="200" alt="SERVINI Logo">
 
 
 
@@ -111,142 +111,7 @@ php artisan migrate
 7. Lancer le Serveur
 
 php artisan serve
-
-
-
-L'API sera accessible à l'adresse : http://localhost:8000
-
-📡 Documentation de l'API (Endpoints Principaux)
-
-🔐 Authentification & Profil (Prestataire)
-
-Méthode
-
-Endpoint
-
-Description
-
-Auth Requis
-
-POST
-
-/api/prestataire/register
-
-Créer un compte prestataire
-
-❌
-
-POST
-
-/api/prestataire/login
-
-Se connecter & recevoir un Token
-
-❌
-
-GET
-
-/api/prestataire/information
-
-Récupérer les infos du profil
-
-✅
-
-POST
-
-/api/prestataire/profile/update
-
-Mettre à jour le profil (Bio, Photo)
-
-✅
-
-👥 Public (Recherche & Client)
-
-Méthode
-
-Endpoint
-
-Description
-
-GET
-
-/api/prestataires
-
-Liste filtrée (ville, zone, prix...)
-
-GET
-
-/api/prestataires/{id}
-
-Détails d'un prestataire
-
-POST
-
-/api/reservations
-
-Guest Checkout : Créer une réservation
-
-GET
-
-/api/reservations/{id}
-
-Check Reservation : Suivre le statut
-
-🛡️ Administration
-
-Méthode
-
-Endpoint
-
-Description
-
-Auth Requis
-
-POST
-
-/api/admin/login
-
-Connexion Administrateur
-
-❌
-
-GET
-
-/api/stats
-
-Statistiques globales
-
-✅
-
-GET
-
-/api/admin/prestataires
-
-Voir les inscrits (filtrer par statut pending)
-
-✅
-
-PUT
-
-/api/admin/prestataires/activer/{id}
-
-Valider un prestataire (CNI ok)
-
-✅
-
-📂 Structure de la Base de Données
-
-Le projet repose sur 5 tables principales :
-
-Prestataires : Infos pro, statut (pending/active), CNI.
-
-Services : Catégorie métier liée au prestataire.
-
-Réservations : Contient les infos du client invité + statut.
-
-Avis : Liés à une réservation terminée.
-
-Admins : Gestionnaires de la plateforme.
+-------------------------------------------------------------------------------------------------
 
 👥 Auteurs
 
@@ -260,6 +125,5 @@ Encadré par :
 
 M. JAFAR
 
-Mme. Bouchra BOUFOUS
 
 <p align="center">Made with ❤️ for the Moroccan Community</p>
