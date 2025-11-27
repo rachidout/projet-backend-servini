@@ -1,59 +1,265 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+<img src="public/logo-homev1.png" width="200" alt="SERVINI Logo">
+
+
+
+
+
+<img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="200" alt="Laravel Logo">
+<h1 align="center">SERVINI - Backend API</h1>
 </p>
 
-## About Laravel
+<p align="center">
+<strong>Plateforme de Réservation de Services en Ligne (Architecture Headless)</strong>
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+<a href="https://laravel.com"><img src="https://www.google.com/search?q=https://img.shields.io/badge/Laravel-11-FF2D20%3Fstyle%3Dflat%26logo%3Dlaravel%26logoColor%3Dwhite" alt="Laravel 11"></a>
+<a href="https://laravel.com/docs/sanctum"><img src="https://www.google.com/search?q=https://img.shields.io/badge/Auth-Sanctum-lightgrey" alt="Sanctum"></a>
+<a href="https://www.mysql.com/"><img src="https://www.google.com/search?q=https://img.shields.io/badge/Database-MySQL-00758F%3Fstyle%3Dflat%26logo%3Dmysql%26logoColor%3Dwhite" alt="MySQL"></a>
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+📋 À Propos du Projet
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+SERVINI est une plateforme web innovante conçue pour simplifier la mise en relation entre les particuliers et les prestataires de services (plombiers, électriciens, bricoleurs) au Maroc.
 
-## Learning Laravel
+Ce dépôt contient le Code Source Backend (API RESTful) développé avec Laravel. Il gère toute la logique métier, la base de données, l'authentification et la sécurité, et communique avec le Frontend (React.js) via des réponses JSON.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+🚀 Fonctionnalités Clés du Backend
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+API RESTful : Architecture découplée servie uniquement via des endpoints JSON.
 
-## Laravel Sponsors
+Authentification Multi-Rôles : Gestion sécurisée des Prestataires et des Administrateurs via Laravel Sanctum (Tokens API).
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Guest Checkout (Réservation Invité) : Logique permettant de traiter des réservations pour des clients non-inscrits (stockage direct des infos client dans la table réservation).
 
-### Premium Partners
+Système de Filtrage Avancé : Algorithme de recherche dynamique par Ville, Zone, Catégorie, Prix et Note.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Suivi de Réservation : Endpoint public permettant de vérifier le statut d'une demande via un ID unique.
 
-## Contributing
+Gestion des Uploads : Traitement des images de profil et des pièces d'identité (CNI).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+🛠️ Stack Technique
 
-## Code of Conduct
+Framework : Laravel 11.x
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Langage : PHP 8.2+
 
-## Security Vulnerabilities
+Base de Données : MySQL
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Sécurité : Laravel Sanctum (Bearer Token)
 
-## License
+ORM : Eloquent (Relations hasOne, hasManyThrough...)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Outils de Dev : Postman, Composer
+
+⚙️ Installation et Configuration
+
+Suivez ces étapes pour lancer l'API sur votre machine locale :
+
+1. Prérequis
+
+PHP >= 8.2
+
+Composer
+
+MySQL
+
+2. Cloner le projet
+
+git clone [https://github.com/votre-username/servini-backend.git](https://github.com/votre-username/servini-backend.git)
+cd servini-backend
+
+
+
+3. Installer les dépendances
+
+composer install
+
+
+
+4. Configuration de l'environnement
+
+Dupliquez le fichier d'exemple et générez la clé d'application :
+
+cp .env.example .env
+php artisan key:generate
+
+
+
+5. Configuration de la Base de Données
+
+Ouvrez le fichier .env et configurez vos accès MySQL :
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=servini_db
+DB_USERNAME=root
+DB_PASSWORD=
+
+
+
+6. Migrations
+
+Créez les tables dans la base de données :
+
+php artisan migrate
+
+
+
+7. Lancer le Serveur
+
+php artisan serve
+
+
+
+L'API sera accessible à l'adresse : http://localhost:8000
+
+📡 Documentation de l'API (Endpoints Principaux)
+
+🔐 Authentification & Profil (Prestataire)
+
+Méthode
+
+Endpoint
+
+Description
+
+Auth Requis
+
+POST
+
+/api/prestataire/register
+
+Créer un compte prestataire
+
+❌
+
+POST
+
+/api/prestataire/login
+
+Se connecter & recevoir un Token
+
+❌
+
+GET
+
+/api/prestataire/information
+
+Récupérer les infos du profil
+
+✅
+
+POST
+
+/api/prestataire/profile/update
+
+Mettre à jour le profil (Bio, Photo)
+
+✅
+
+👥 Public (Recherche & Client)
+
+Méthode
+
+Endpoint
+
+Description
+
+GET
+
+/api/prestataires
+
+Liste filtrée (ville, zone, prix...)
+
+GET
+
+/api/prestataires/{id}
+
+Détails d'un prestataire
+
+POST
+
+/api/reservations
+
+Guest Checkout : Créer une réservation
+
+GET
+
+/api/reservations/{id}
+
+Check Reservation : Suivre le statut
+
+🛡️ Administration
+
+Méthode
+
+Endpoint
+
+Description
+
+Auth Requis
+
+POST
+
+/api/admin/login
+
+Connexion Administrateur
+
+❌
+
+GET
+
+/api/stats
+
+Statistiques globales
+
+✅
+
+GET
+
+/api/admin/prestataires
+
+Voir les inscrits (filtrer par statut pending)
+
+✅
+
+PUT
+
+/api/admin/prestataires/activer/{id}
+
+Valider un prestataire (CNI ok)
+
+✅
+
+📂 Structure de la Base de Données
+
+Le projet repose sur 5 tables principales :
+
+Prestataires : Infos pro, statut (pending/active), CNI.
+
+Services : Catégorie métier liée au prestataire.
+
+Réservations : Contient les infos du client invité + statut.
+
+Avis : Liés à une réservation terminée.
+
+Admins : Gestionnaires de la plateforme.
+
+👥 Auteurs
+
+Projet réalisé dans le cadre du module Programmation Web Dynamique à la Faculté des Sciences d'Agadir (FSA) - Centre d'Excellence.
+
+Rachid OUTSILA - Développeur Full Stack
+
+Khalid ZADO - Développeur Full Stack
+
+Encadré par :
+
+M. JAFAR
+
+Mme. Bouchra BOUFOUS
+
+<p align="center">Made with ❤️ for the Moroccan Community</p>
