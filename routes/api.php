@@ -9,11 +9,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\StaticsController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -28,14 +24,12 @@ Route::middleware('auth:sanctum')->get('/test-user', function (Request $request)
     ]);
 });
 
-// ==================================
 // ROUTES PRESTATAIRE
-// ==================================
 Route::post('/prestataire/register', [PrestataireController::class, 'register']);
 Route::post('/prestataire/login', [PrestataireController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/prestataire/logout', [PrestataireController::class, 'logout']);
 
-// Profil et paramètres protégés
+// Profil api proteger
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/prestataire/profile/update', [PrestataireController::class, 'updateProfile']);
     Route::post('/prestataire/password/update', [PrestataireController::class, 'updatePassword']);
@@ -44,19 +38,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/prestataire/parameter', [PrestataireController::class, 'setparameter']);
 });
 
-// Routes publiques - Filtrage et recherche
+// Routes publiques
 Route::get('/prestataires', [PrestataireController::class, 'index']);
 Route::get('/prestataires/{id}', [PrestataireController::class, 'show']);
 
 
-// ==================================
 // ROUTES ADMIN
-// ==================================
 Route::prefix('admin')->group(function () {
-    // Login public
     Route::post('/login', [AdminController::class, 'login']);
 
-    // Routes protégées Admin
     Route::middleware('auth:sanctum')->group(function(){
         Route::post('/logout', [AdminController::class, 'logout']);
         Route::get('/prestataires', [AdminController::class, 'show_all']);
@@ -67,9 +57,8 @@ Route::prefix('admin')->group(function () {
 });
 
 
-// ==================================
 // ROUTES DIVERSES
-// ==================================
+
 
 // Réservation
 Route::post('/reservations', [ReservationController::class, 'store']);

@@ -21,8 +21,7 @@ class PrestataireController extends Controller {
     public function register(RegisterPrestataireRequest $request){
         $validatedData = $request->validated();
 
-        $imageName = 'default-profile.jpg'; // Image par défaut
-
+        $imageName = 'default-profile.jpg';
         if ($request->hasFile('image')) {
             $imageName = time() . '_' . uniqid() . '.' . $request->image->extension();
             $request->image->move(public_path('profile_image'), $imageName);
